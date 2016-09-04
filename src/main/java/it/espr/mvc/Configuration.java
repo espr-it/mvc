@@ -12,6 +12,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import it.espr.injector.Utils.Pair;
+import it.espr.mvc.view.JsonView;
 import it.espr.mvc.view.SimpleView;
 import it.espr.mvc.view.View;
 
@@ -68,19 +69,30 @@ public abstract class Configuration extends it.espr.injector.Configuration {
 		routes.put(key, route);
 	}
 
-	public void addView(String type, View view) {
-		this.views.put(type, view);
+	public void registerView(View view) {
+		if (view.isAvailable()) {
+			for (String type : view.getTypes()) {
+				this.views.put(type, view);
+			}
+		}
 	}
 
 	final void configure() {
 		this.configureRoutes();
+
+		this.configureDefaultViews();
 		this.configureViews();
 	}
 
 	protected abstract void configureRoutes();
 
+	void configureDefaultViews() {
+		this.registerView(new SimpleView());
+		this.registerView(new JsonView());
+	}
+
 	protected void configureViews() {
-		this.addView(null, new SimpleView());
+		// override if you want to add custom views
 	}
 
 	private String parsePathVariables(List<Pair<String, Class<?>>> pathVariables, String path) {
@@ -98,26 +110,5 @@ public abstract class Configuration extends it.espr.injector.Configuration {
 			newPath = newPath.replaceFirst(Pattern.quote(group), replacement);
 		}
 		return newPath;
-	}
-
-	private void OldThing(Map<String, Class<?>> pathVariables, String path) {
-		// Pattern pattern = Pattern.compile(".*\\((.*)\\).*");
-		Pattern pattern = Pattern.compile("(\\([^\\(]+\\))");
-		Matcher matcher = pattern.matcher(path);
-		if (matcher.matches()) {
-			pathVariables = new LinkedHashMap<>();
-			for (int i = 0; i < matcher.groupCount(); i++) {
-				String group = matcher.group(i);
-				String[] items = group.split(":");
-				String replacement = "(.*)";
-				String variable = items[0];
-				if (items.length > 1) {
-					replacement = items[0];
-					variable = items[1];
-				}
-				pathVariables.put(variable, String.class);
-				path = path.replaceFirst(group, replacement);
-			}
-		}
 	}
 }

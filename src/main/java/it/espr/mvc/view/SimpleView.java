@@ -18,4 +18,13 @@ public class SimpleView implements View {
 		}
 	}
 
+	@Override
+	public boolean isAvailable() {
+		return true;
+	}
+
+	@Override
+	public String[] getTypes() {
+		return new String[] { null, "text/plain", "text/html" };
+	}
 }
