@@ -1,4 +1,4 @@
-# Simple MVC framework [![Build Status](https://travis-ci.org/espr-it/mvc.svg?branch=master)](https://travis-ci.org/espr-it/mvc)
+# Simple MVC framework 
 
 Very simple and minimalistic Model & View & Controller framework for Java applications. Allows routing of requests to simple Java Beans and automatically resolving into simple text or json views. It's using esprit-injector under cover to instatiate beans.
 
