@@ -1,0 +1,9 @@
+# Simple MVC framework 
+
+Very simple and minimalistic Model & View & Controller framework for Java applications. Allows routing of requests to simple Java Beans and automatically resolving into simple text or json views. It's using esprit-injector under cover to instatiate beans.
+
+This is really alpha release not recommended to be used on production. But feel free to experiment and submit pull requests in case you find a bug or have an idea about any missing and useful feature.
+
+## Getting Started
+
+Clone and compile with maven - ie. mvn eclipse:eclipse to import to eclipse or 'mvn install' to add to local repository. I'll add a real maven repo little bit later.
