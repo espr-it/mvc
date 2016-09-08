@@ -29,7 +29,7 @@ public class Router {
 
 		if (this.cache.containsKey(cacheKey)) {
 			log.debug("Found a route in cache for {}", cacheKey);
-			// return this.cache.get(cacheKey);
+			return this.cache.get(cacheKey);
 		}
 
 		log.debug("Looping over {} available routes ", cacheKey);
