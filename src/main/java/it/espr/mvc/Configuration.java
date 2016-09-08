@@ -39,7 +39,7 @@ public abstract class Configuration extends it.espr.injector.Configuration {
 		try {
 			Method[] methods = model.getMethods();
 			for (Method candidate : methods) {
-				if (utils.isPublic(candidate) && candidate.getName().equals(method) && candidate.getParameterCount() >= (parameters == null ? 0 : parameters.length)) {
+				if (utils.isPublic(candidate) && candidate.getName().equals(method) && candidate.getParameterTypes().length >= (parameters == null ? 0 : parameters.length)) {
 					m = candidate;
 					break;
 				}
