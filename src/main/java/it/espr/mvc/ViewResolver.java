@@ -44,13 +44,15 @@ public class ViewResolver {
 
 	public List<String> getAccept(String header) {
 		List<String> accept = new ArrayList<>();
-		try {
-			String[] tokens = header.split(";")[0].split(",");
-			for (String token : tokens) {
-				accept.add(token.trim());
+		if (header != null && !"".equals(header.trim())) {
+			try {
+				String[] tokens = header.split(";")[0].split(",");
+				for (String token : tokens) {
+					accept.add(token.trim());
+				}
+			} catch (Exception e) {
+				log.error("Problem when parsing accept headers", e);
 			}
-		} catch (Exception e) {
-			log.error("Problem when parsing accept headers", e);
 		}
 		accept.add(null);
 		return accept;

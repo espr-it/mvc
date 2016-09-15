@@ -26,4 +26,7 @@ class Route {
 		this.parameters = parameters;
 	}
 
+	public String toString() {
+		return this.requestType + " " + this.path + ": " + this.getClass().getCanonicalName() + "." + this.method + "(" + this.parameters + ")";
+	}
 }

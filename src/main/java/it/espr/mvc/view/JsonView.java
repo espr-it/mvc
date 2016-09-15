@@ -53,9 +53,4 @@ public class JsonView implements View {
 		}
 		return true;
 	}
-
-	@Override
-	public String[] getTypes() {
-		return new String[] { "application/json" };
-	}
 }

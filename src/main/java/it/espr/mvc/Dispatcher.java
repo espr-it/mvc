@@ -2,6 +2,7 @@ package it.espr.mvc;
 
 import java.io.BufferedReader;
 import java.io.IOException;
+import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -65,16 +66,27 @@ public class Dispatcher extends HttpServlet {
 		Route route = pair.p1;
 		Object model = injector.get(route.model);
 		List<Object> parameters = null;
-		if (route.parameters != null && route.parameters.size() > 0) {
+		if ((pair.p2 != null && pair.p2.size() > 0) || (route.parameters != null && route.parameters.size() > 0)) {
 			parameters = new ArrayList<>();
-			if ("post".equals(requestType) && route.parameters.size() == 1 && !"application/x-www-form-urlencoded".equals(request.getContentType())) {
-				parameters.add(this.readBody(request));
-			} else {
-				if (pair.p2 != null) {
-					for (Entry<String, Object> entry : pair.p2.entrySet()) {
-						parameters.add(entry.getValue());
-					}
+
+			if (pair.p2 != null && pair.p2.size() > 0) {
+				for (Entry<String, Object> entry : pair.p2.entrySet()) {
+					parameters.add(entry.getValue());
 				}
+			}
+
+			if ("post".equals(requestType) && route.parameters.size() == 1) { //&& !"application/x-www-form-urlencoded".equals(request.getContentType())) {
+				Entry<String, Class<?>> parameter = route.parameters.entrySet().iterator().next();
+				if (parameter.getValue().equals(InputStream.class)) {
+					try {
+						parameters.add(request.getInputStream());
+					} catch (IOException e) {
+						log.error("Problem when parsing request input stream", e);
+					}
+				} else {
+					parameters.add(this.readBody(request));
+				}
+			} else {
 				for (Entry<String, Class<?>> entry : route.parameters.entrySet()) {
 					parameters.add(request.getParameter(entry.getKey()));
 				}

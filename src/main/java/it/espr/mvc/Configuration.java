@@ -11,7 +11,10 @@ import java.util.regex.Pattern;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import it.espr.injector.Utils;
 import it.espr.injector.Utils.Pair;
+import it.espr.mvc.config.RouteConfig;
+import it.espr.mvc.config.ViewConfig;
 import it.espr.mvc.view.JsonView;
 import it.espr.mvc.view.SimpleView;
 import it.espr.mvc.view.View;
@@ -24,22 +27,46 @@ public abstract class Configuration extends it.espr.injector.Configuration {
 
 	private static final Logger log = LoggerFactory.getLogger(Configuration.class);
 
+	List<RouteConfig> routesConfiguration = new ArrayList<>();
+
+	List<ViewConfig> defaultViewConfiguration = new ArrayList<>();
+
+	List<ViewConfig> viewConfiguration = new ArrayList<>();
+
 	Map<String, Route> routes = new LinkedHashMap<>();
 
 	Map<String, View> views = new LinkedHashMap<>();
 
-	public void addRoute(String path, Class<?> model, String method) {
-		this.addRoute(path, "get", model, method, null);
+	public Configuration() {
+		super();
+		this.view(defaultViewConfiguration, null, "text/plain", "text/html").with(new SimpleView());
+		this.view(defaultViewConfiguration, "application/json").with(new JsonView());
 	}
 
-	public void addRoute(String path, String requestType, Class<?> model, String method, String[] parameters) {
+	public RouteConfig route() {
+		RouteConfig routeConfig = new RouteConfig();
+		this.routesConfiguration.add(routeConfig);
+		return routeConfig;
+	}
+
+	public ViewConfig view(String... accept) {
+		return view(this.viewConfiguration, accept);
+	}
+
+	public ViewConfig view(List<ViewConfig> viewConfiguration, String... accept) {
+		ViewConfig viewConfig = new ViewConfig(accept);
+		this.viewConfiguration.add(viewConfig);
+		return viewConfig;
+	}
+
+	private void addRoute(String path, String requestType, Class<?> model, String method, List<String> parameters) {
 		Method m = null;
 		List<Pair<String, Class<?>>> pathVariables = new ArrayList<>();
 		Map<String, Class<?>> params = null;
 		try {
 			Method[] methods = model.getMethods();
 			for (Method candidate : methods) {
-				if (utils.isPublic(candidate) && candidate.getName().equals(method) && candidate.getParameterTypes().length >= (parameters == null ? 0 : parameters.length)) {
+				if (Utils.isPublic(candidate) && candidate.getName().equals(method) && candidate.getParameterTypes().length >= (parameters == null ? 0 : parameters.size())) {
 					m = candidate;
 					break;
 				}
@@ -55,12 +82,12 @@ public abstract class Configuration extends it.espr.injector.Configuration {
 			if (methodParameters != null && methodParameters.length > 0) {
 				params = new LinkedHashMap<>();
 				for (int i = index; i < methodParameters.length; i++) {
-					params.put(parameters[i - index], methodParameters[i]);
+					params.put(parameters.get(i - index), methodParameters[i]);
 				}
 			}
 		} catch (Exception e) {
-			log.error("Problem when configuring route: {} {} {} {} {}", path, requestType, model, method, parameters);
-			throw new RuntimeException("Problem when configuring route '" + requestType + " " + path + " " + model + " " + method + " " + parameters);
+			log.error("Problem when configuring route: {} {} {} {} {}", path, requestType, model, method, parameters, e);
+			throw new RuntimeException("Problem when configuring route '" + requestType + " " + path + " " + model + " " + method + " " + parameters, e);
 		}
 
 		pathVariables = pathVariables.size() == 0 ? null : pathVariables;
@@ -69,31 +96,32 @@ public abstract class Configuration extends it.espr.injector.Configuration {
 		routes.put(key, route);
 	}
 
-	public void registerView(View view) {
-		if (view.isAvailable()) {
-			for (String type : view.getTypes()) {
-				this.views.put(type, view);
+	protected final void configure() {
+		this.configureMvc();
+		for (RouteConfig routeConfig : routesConfiguration) {
+			for (String requestType : routeConfig.getRequestTypes()) {
+				this.addRoute(routeConfig.getUri(), requestType, routeConfig.getClazz(), routeConfig.getMethod(), routeConfig.getParameters());
+			}
+		}
+		for (ViewConfig viewConfig : viewConfiguration) {
+			if (viewConfig.getClazz().isAvailable()) {
+				for (String accept : viewConfig.getAccept()) {
+					this.views.put(accept, viewConfig.getClazz());
+				}
+			}
+		}
+		for (ViewConfig viewConfig : defaultViewConfiguration) {
+			if (viewConfig.getClazz().isAvailable()) {
+				for (String accept : viewConfig.getAccept()) {
+					if (!this.views.containsKey(accept)) {
+						this.views.put(accept, viewConfig.getClazz());
+					}
+				}
 			}
 		}
 	}
 
-	final void configure() {
-		this.configureRoutes();
-
-		this.configureDefaultViews();
-		this.configureViews();
-	}
-
-	protected abstract void configureRoutes();
-
-	void configureDefaultViews() {
-		this.registerView(new SimpleView());
-		this.registerView(new JsonView());
-	}
-
-	protected void configureViews() {
-		// override if you want to add custom views
-	}
+	protected abstract void configureMvc();
 
 	private String parsePathVariables(List<Pair<String, Class<?>>> pathVariables, String path) {
 		Matcher matcher = PATH_VARIABLE_PATTERN.matcher(path);
@@ -103,7 +131,7 @@ public abstract class Configuration extends it.espr.injector.Configuration {
 			String[] items = group.split(":");
 			String replacement = DEFAULT_MATCHER;
 			String variable = items[1];
-			if (!utils.isEmpty(items[0])) {
+			if (!Utils.isEmpty(items[0])) {
 				replacement = items[0];
 			}
 			pathVariables.add(new Pair<String, Class<?>>(variable, String.class));
