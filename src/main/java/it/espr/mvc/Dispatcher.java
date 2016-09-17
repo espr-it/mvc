@@ -33,7 +33,7 @@ public class Dispatcher extends HttpServlet {
 	public void init() throws ServletException {
 		try {
 			Configuration configuration = (Configuration) Class.forName(this.getInitParameter("configuration")).newInstance();
-			configuration.configure();
+			configuration.configureMvc();
 			this.router = new Router(configuration.routes);
 			this.viewResolver = new ViewResolver(configuration.views);
 			this.injector = Injector.get(configuration);

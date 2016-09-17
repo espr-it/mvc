@@ -1,5 +1,9 @@
 package it.espr.mvc.view;
 
+import java.util.LinkedHashMap;
+import java.util.Map;
+import java.util.Map.Entry;
+
 import javax.servlet.http.HttpServletResponse;
 
 import org.slf4j.Logger;
@@ -11,16 +15,21 @@ public class JsonView implements View {
 
 	private static final Logger log = LoggerFactory.getLogger(JsonView.class);
 
-	private Json json;
+	private static final Map<String, String> jsonViews = new LinkedHashMap<>();
 
-	private Object implemention;
+	{
+		jsonViews.put("com.fasterxml.jackson.databind.ObjectMapper", "it.espr.mvc.view.json.Jackson");
+		jsonViews.put("com.google.gson.Gson", "it.espr.mvc.view.json.Gson");
+	}
+
+	private Json json;
 
 	public JsonView() {
 		this(null);
 	}
 
-	public JsonView(Object implementation) {
-		this.implemention = implementation;
+	public JsonView(Json json) {
+		this.json = json;
 	}
 
 	@Override
@@ -29,28 +38,40 @@ public class JsonView implements View {
 			try {
 				response.getWriter().write(this.json.serialise(data));
 			} catch (Exception e) {
-				log.error("Problem when writing json output", e);
+				log.error("Problem when writing json output with {}", json, e);
 			}
 		}
 	}
 
 	@Override
 	public boolean isAvailable() {
-		if (this.implemention == null) {
-			try {
-				Class<?> c = (Class<?>) Class.forName("com.fasterxml.jackson.databind.ObjectMapper", false, this.getClass().getClassLoader());
-				if (c != null) {
-					this.json = (Json) Class.forName("it.espr.mvc.view.json.Jackson").newInstance();
+		if (this.json == null) {
+			log.debug("No JSON view registered in config - trying to load some of the default implementations");
+			for (Entry<String, String> jsonView : jsonViews.entrySet()) {
+				try {
+					log.debug("looking for json view {}", jsonView.getKey());
+					Class<?> c = (Class<?>) Class.forName(jsonView.getKey(), false, this.getClass().getClassLoader());
+					if (c != null) {
+						this.json = (Json) Class.forName(jsonView.getValue()).newInstance();
+					}
+					log.debug("Found and initialised json view {}", jsonView.getKey());
+					break;
+				} catch (Exception e) {
+					log.debug("Couldn't find a {} json impl on classpath", jsonView.getKey(), e);
 				}
-			} catch (Exception e) {
-				log.debug("Can't find default json implementation on classpath", e);
 			}
 		}
 
 		if (this.json == null) {
-			log.debug("Couldn't load json implementation, JSON view is not available");
+			log.info("No JSON view registered and none of default implementations found on class path - JSON view is not available.");
 			return false;
 		}
 		return true;
 	}
+
+	@Override
+	public String toString() {
+		return "" + this.json;
+	}
+
 }

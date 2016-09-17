@@ -17,6 +17,7 @@ public class ConfigurationTest {
 				route().get("/parse/(.*:id)").to(SimpleModel.class, "parse").with("requestParameter");
 			}
 		};
+		configuration.configureMvc();
 		configuration.configure();
 
 		assertThat(configuration.routes).hasSize(1);
@@ -32,7 +33,7 @@ public class ConfigurationTest {
 				route().all("/parse/([0-9]+:id)/(:type)").to(SimpleModel.class, "parseAllRequests").with("requestParameter");
 			}
 		};
-		
+		configuration.configureMvc();
 		configuration.configure();
 
 		assertThat(configuration.routes).hasSize(2);

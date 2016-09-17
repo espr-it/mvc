@@ -15,4 +15,8 @@ public class Jackson implements Json {
 		return this.objectMapper.writeValueAsString(data);
 	}
 
+	@Override
+	public String toString() {
+		return "Jackson";
+	}
 }

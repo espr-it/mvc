@@ -29,7 +29,7 @@ public class ViewResolver {
 		for (String accept : accepts) {
 			if (views.containsKey(accept)) {
 				view = this.views.get(accept);
-				log.debug("Using {} view for {} (accepted views {})", view, accept, accepts);
+				log.debug("Using '{}' implementation of JSON view for '{}' (parsed views: {})", view, accept, accepts);
 				break;
 			}
 		}

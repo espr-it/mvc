@@ -55,7 +55,7 @@ public abstract class Configuration extends it.espr.injector.Configuration {
 
 	public ViewConfig view(List<ViewConfig> viewConfiguration, String... accept) {
 		ViewConfig viewConfig = new ViewConfig(accept);
-		this.viewConfiguration.add(viewConfig);
+		viewConfiguration.add(viewConfig);
 		return viewConfig;
 	}
 
@@ -97,7 +97,6 @@ public abstract class Configuration extends it.espr.injector.Configuration {
 	}
 
 	protected final void configure() {
-		this.configureMvc();
 		for (RouteConfig routeConfig : routesConfiguration) {
 			for (String requestType : routeConfig.getRequestTypes()) {
 				this.addRoute(routeConfig.getUri(), requestType, routeConfig.getClazz(), routeConfig.getMethod(), routeConfig.getParameters());
