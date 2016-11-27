@@ -4,7 +4,7 @@
 
 	<groupId>it.espr</groupId>
 	<artifactId>esprit-mvc</artifactId>
-	<version>0.1.1-SNAPSHOT</version>
+	<version>0.1.2-SNAPSHOT</version>
 	<packaging>jar</packaging>
 
 	<name>esprit-mvc</name>
@@ -144,7 +144,7 @@
 		<dependency>
 			<groupId>it.espr</groupId>
 			<artifactId>esprit-injector</artifactId>
-			<version>0.2.0</version>
+			<version>0.2.2-SNAPSHOT</version>
 		</dependency>
 		<dependency>
 			<groupId>javax.servlet</groupId>

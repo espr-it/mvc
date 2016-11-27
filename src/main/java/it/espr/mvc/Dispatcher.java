@@ -17,7 +17,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import it.espr.injector.Injector;
-import it.espr.injector.Utils.Pair;
 
 @SuppressWarnings("serial")
 public class Dispatcher extends HttpServlet {
@@ -36,7 +35,7 @@ public class Dispatcher extends HttpServlet {
 			configuration.configureMvc();
 			this.router = new Router(configuration.routes);
 			this.viewResolver = new ViewResolver(configuration.views);
-			this.injector = Injector.get(configuration);
+			this.injector = Injector.injector(configuration);
 		} catch (Exception e) {
 			log.error("Problem when loading configuration for mvc dispatcher", e);
 			throw new ServletException("Can't start app.", e);
@@ -75,7 +74,9 @@ public class Dispatcher extends HttpServlet {
 				}
 			}
 
-			if ("post".equals(requestType) && route.parameters.size() == 1) { //&& !"application/x-www-form-urlencoded".equals(request.getContentType())) {
+			if ("post".equals(requestType) && route.parameters.size() == 1) { // &&
+																																				// !"application/x-www-form-urlencoded".equals(request.getContentType()))
+																																				// {
 				Entry<String, Class<?>> parameter = route.parameters.entrySet().iterator().next();
 				if (parameter.getValue().equals(InputStream.class)) {
 					try {

@@ -12,7 +12,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import it.espr.injector.Utils;
-import it.espr.injector.Utils.Pair;
 import it.espr.mvc.config.RouteConfig;
 import it.espr.mvc.config.ViewConfig;
 import it.espr.mvc.view.JsonView;

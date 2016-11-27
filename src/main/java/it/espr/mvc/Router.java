@@ -8,8 +8,6 @@ import java.util.regex.Matcher;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import it.espr.injector.Utils.Pair;
-
 public class Router {
 
 	private static final Logger log = LoggerFactory.getLogger(Router.class);
