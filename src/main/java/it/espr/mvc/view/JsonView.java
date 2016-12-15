@@ -36,6 +36,10 @@ public class JsonView implements View {
 	public void view(HttpServletResponse response, Object data) {
 		if (data != null) {
 			try {
+				response.addHeader("Access-Control-Allow-Origin", "*");
+				response.addHeader("Access-Control-Allow-Credentials", "true");
+				response.addHeader("Access-Control-Allow-Methods", "GET, POST, DELETE, PUT, OPTIONS, HEAD");
+				response.addHeader("Access-Control-Allow-Headers", "Content-Type, Accept, X-Requested-With");
 				response.getWriter().write(this.json.serialise(data));
 			} catch (Exception e) {
 				log.error("Problem when writing json output with {}", json, e);
