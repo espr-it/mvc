@@ -14,9 +14,10 @@ import org.slf4j.LoggerFactory;
 import it.espr.injector.Utils;
 import it.espr.mvc.config.RouteConfig;
 import it.espr.mvc.config.ViewConfig;
-import it.espr.mvc.view.JsonView;
 import it.espr.mvc.view.SimpleView;
 import it.espr.mvc.view.View;
+import it.espr.mvc.view.json.JsonView;
+import it.espr.mvc.view.json.JsonViewFinder;
 
 public abstract class Configuration extends it.espr.injector.Configuration {
 
@@ -34,13 +35,7 @@ public abstract class Configuration extends it.espr.injector.Configuration {
 
 	Map<String, Route> routes = new LinkedHashMap<>();
 
-	Map<String, View> views = new LinkedHashMap<>();
-
-	public Configuration() {
-		super();
-		this.view(defaultViewConfiguration, null, "text/plain", "text/html").with(new SimpleView());
-		this.view(defaultViewConfiguration, "application/json").with(new JsonView());
-	}
+	Map<String, Class<? extends View>> views = new LinkedHashMap<>();
 
 	public RouteConfig route() {
 		RouteConfig routeConfig = new RouteConfig();
@@ -49,10 +44,6 @@ public abstract class Configuration extends it.espr.injector.Configuration {
 	}
 
 	public ViewConfig view(String... accept) {
-		return view(this.viewConfiguration, accept);
-	}
-
-	public ViewConfig view(List<ViewConfig> viewConfiguration, String... accept) {
 		ViewConfig viewConfig = new ViewConfig(accept);
 		viewConfiguration.add(viewConfig);
 		return viewConfig;
@@ -96,25 +87,50 @@ public abstract class Configuration extends it.espr.injector.Configuration {
 	}
 
 	protected final void configure() {
+		this.configureMvc();
+
 		for (RouteConfig routeConfig : routesConfiguration) {
 			for (String requestType : routeConfig.getRequestTypes()) {
 				this.addRoute(routeConfig.getUri(), requestType, routeConfig.getClazz(), routeConfig.getMethod(), routeConfig.getParameters());
 			}
 		}
+
 		for (ViewConfig viewConfig : viewConfiguration) {
-			if (viewConfig.getClazz().isAvailable()) {
-				for (String accept : viewConfig.getAccept()) {
-					this.views.put(accept, viewConfig.getClazz());
-				}
+			for (String accept : viewConfig.getAccept()) {
+				this.views.put(accept, viewConfig.getClazz());
 			}
 		}
-		for (ViewConfig viewConfig : defaultViewConfiguration) {
-			if (viewConfig.getClazz().isAvailable()) {
-				for (String accept : viewConfig.getAccept()) {
-					if (!this.views.containsKey(accept)) {
-						this.views.put(accept, viewConfig.getClazz());
-					}
-				}
+
+		this.addDefaultViews();
+		if (this.views.containsKey("application/json")) {
+			this.bind(JsonView.class).to(this.views.get("application/json"));
+		}
+
+		this.bind(routes).named("MvcRoutes");
+		this.bind(views).named("MvcViews");
+	}
+
+	private final void addDefaultViews() {
+		log.debug("Adding default views...");
+
+		// add simple view as a default and text/html option if user didn't
+		// declared them
+		if (!this.views.containsKey(null)) {
+			log.debug("Adding SimpleView as a default view.");
+			this.views.put(null, SimpleView.class);
+		}
+		if (!this.views.containsKey("text/html")) {
+			log.debug("Adding SimpleView for {}.", "text/html");
+			this.views.put("text/html", SimpleView.class);
+		}
+
+		// add json view in case user didn't declare any but put a json lib on
+		// classpath
+		if (!this.views.containsKey("application/json") && !this.isBound(JsonView.class)) {
+			Class<? extends JsonView> jsonView = new JsonViewFinder().find();
+			if (jsonView != null) {
+				log.debug("Adding {} as an auto configured json view for {}.", jsonView, "application/json");
+				this.views.put("application/json", jsonView);
 			}
 		}
 	}

@@ -17,9 +17,4 @@ public class SimpleView implements View {
 			}
 		}
 	}
-
-	@Override
-	public boolean isAvailable() {
-		return true;
-	}
 }

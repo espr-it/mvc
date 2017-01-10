@@ -32,10 +32,11 @@ public class Dispatcher extends HttpServlet {
 	public void init() throws ServletException {
 		try {
 			Configuration configuration = (Configuration) Class.forName(this.getInitParameter("configuration")).newInstance();
-			configuration.configureMvc();
-			this.router = new Router(configuration.routes);
-			this.viewResolver = new ViewResolver(configuration.views);
 			this.injector = Injector.injector(configuration);
+
+			this.router = this.injector.get(Router.class);
+			this.viewResolver = this.injector.get(ViewResolver.class);
+			
 		} catch (Exception e) {
 			log.error("Problem when loading configuration for mvc dispatcher", e);
 			throw new ServletException("Can't start app.", e);

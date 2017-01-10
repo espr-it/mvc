@@ -4,6 +4,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
+import javax.inject.Named;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
@@ -18,7 +19,7 @@ public class ViewResolver {
 
 	private Map<String, View> views;
 
-	public ViewResolver(Map<String, View> views) {
+	public ViewResolver(@Named("MvcViews") Map<String, View> views) {
 		super();
 		this.views = views;
 	}
@@ -29,7 +30,7 @@ public class ViewResolver {
 		for (String accept : accepts) {
 			if (views.containsKey(accept)) {
 				view = this.views.get(accept);
-				log.debug("Using '{}' implementation of JSON view for '{}' (parsed views: {})", view, accept, accepts);
+				log.debug("Using '{}' view implementation for '{}' (supplied accept parameters: {})", view, accept, accepts);
 				break;
 			}
 		}

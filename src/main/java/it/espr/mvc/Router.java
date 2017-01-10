@@ -5,6 +5,8 @@ import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.regex.Matcher;
 
+import javax.inject.Named;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -16,7 +18,7 @@ public class Router {
 
 	private Map<String, Pair<Route, Map<String, Object>>> cache;
 
-	public Router(Map<String, Route> routes) {
+	public Router(@Named("MvcRoutes") Map<String, Route> routes) {
 		this.routes = routes;
 		this.cache = new HashMap<>();
 	}

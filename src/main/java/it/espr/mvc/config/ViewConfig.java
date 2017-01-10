@@ -9,14 +9,14 @@ import it.espr.mvc.view.View;
 public final class ViewConfig {
 
 	private List<String> accept;
-	
-	private View clazz;
-	
-	public ViewConfig(String ... accept) {
+
+	private Class<? extends View> clazz;
+
+	public ViewConfig(String... accept) {
 		this.accept = new ArrayList<>(Arrays.asList(accept));
 	}
-	
-	public void with(View clazz) {
+
+	public void with(Class<? extends View> clazz) {
 		this.clazz = clazz;
 	}
 
@@ -24,7 +24,7 @@ public final class ViewConfig {
 		return accept;
 	}
 
-	public View getClazz() {
+	public Class<? extends View> getClazz() {
 		return clazz;
 	}
 }
