@@ -17,6 +17,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import it.espr.injector.Injector;
+import it.espr.mvc.converter.StringToTypeConverterFactory;
 
 @SuppressWarnings("serial")
 public class Dispatcher extends HttpServlet {
@@ -29,6 +30,8 @@ public class Dispatcher extends HttpServlet {
 
 	private ViewResolver viewResolver;
 
+	private StringToTypeConverterFactory stringToTypeConverterFactory;
+
 	public void init() throws ServletException {
 		try {
 			Configuration configuration = (Configuration) Class.forName(this.getInitParameter("configuration")).newInstance();
@@ -36,7 +39,8 @@ public class Dispatcher extends HttpServlet {
 
 			this.router = this.injector.get(Router.class);
 			this.viewResolver = this.injector.get(ViewResolver.class);
-			
+			this.stringToTypeConverterFactory = this.injector.get(StringToTypeConverterFactory.class);
+
 		} catch (Exception e) {
 			log.error("Problem when loading configuration for mvc dispatcher", e);
 			throw new ServletException("Can't start app.", e);
@@ -75,9 +79,7 @@ public class Dispatcher extends HttpServlet {
 				}
 			}
 
-			if ("post".equals(requestType) && route.parameters.size() == 1) { // &&
-																																				// !"application/x-www-form-urlencoded".equals(request.getContentType()))
-																																				// {
+			if ("post".equals(requestType) && route.parameters.size() == 1) {
 				Entry<String, Class<?>> parameter = route.parameters.entrySet().iterator().next();
 				if (parameter.getValue().equals(InputStream.class)) {
 					try {
@@ -89,12 +91,17 @@ public class Dispatcher extends HttpServlet {
 					parameters.add(this.readBody(request));
 				}
 			} else {
-				for (Entry<String, Class<?>> entry : route.parameters.entrySet()) {
-					parameters.add(request.getParameter(entry.getKey()));
+				for (Entry<String, Class<?>> parameter : route.parameters.entrySet()) {
+					try {
+						parameters.add(this.stringToTypeConverterFactory.convert(parameter.getValue(), request.getParameter(parameter.getKey())));
+					} catch (Exception e) {
+						log.error("Problem when converting request parameters", e);
+						return;
+					}
 				}
 			}
 		}
-
+		
 		Object result = null;
 		try {
 			if (parameters == null) {
