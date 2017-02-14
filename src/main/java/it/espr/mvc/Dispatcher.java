@@ -18,6 +18,7 @@ import org.slf4j.LoggerFactory;
 
 import it.espr.injector.Injector;
 import it.espr.mvc.converter.StringToTypeConverterFactory;
+import it.espr.mvc.json.Json;
 
 @SuppressWarnings("serial")
 public class Dispatcher extends HttpServlet {
@@ -30,6 +31,8 @@ public class Dispatcher extends HttpServlet {
 
 	private ViewResolver viewResolver;
 
+	private Json json;
+
 	private StringToTypeConverterFactory stringToTypeConverterFactory;
 
 	public void init() throws ServletException {
@@ -40,6 +43,7 @@ public class Dispatcher extends HttpServlet {
 			this.router = this.injector.get(Router.class);
 			this.viewResolver = this.injector.get(ViewResolver.class);
 			this.stringToTypeConverterFactory = this.injector.get(StringToTypeConverterFactory.class);
+			this.json = this.injector.get(Json.class);
 
 		} catch (Exception e) {
 			log.error("Problem when loading configuration for mvc dispatcher", e);
@@ -79,29 +83,27 @@ public class Dispatcher extends HttpServlet {
 				}
 			}
 
-			if ("post".equals(requestType) && route.parameters.size() == 1) {
-				Entry<String, Class<?>> parameter = route.parameters.entrySet().iterator().next();
-				if (parameter.getValue().equals(InputStream.class)) {
-					try {
-						parameters.add(request.getInputStream());
-					} catch (IOException e) {
-						log.error("Problem when parsing request input stream", e);
-					}
-				} else {
-					parameters.add(this.readBody(request));
-				}
-			} else {
+			try {
 				for (Entry<String, Class<?>> parameter : route.parameters.entrySet()) {
-					try {
+					if (parameter.getKey().startsWith("header")) {
+						parameters.add(this.stringToTypeConverterFactory.convert(parameter.getValue(), request.getHeader(parameter.getKey())));
+					} else if ("post".equals(requestType)) {
+						if (parameter.getValue().equals(InputStream.class)) {
+							parameters.add(request.getInputStream());
+						} else if (parameter.getValue().equals(String.class)) {
+							parameters.add(this.readBody(request));
+						} else {
+							parameters.add(this.stringToTypeConverterFactory.convert(parameter.getValue(), this.readBody(request)));
+						}
+					} else {
 						parameters.add(this.stringToTypeConverterFactory.convert(parameter.getValue(), request.getParameter(parameter.getKey())));
-					} catch (Exception e) {
-						log.error("Problem when converting request parameters", e);
-						return;
 					}
 				}
+			} catch (Exception e) {
+				log.error("Problem when converting/parsing parameters {} from request {}", route.parameters, request, e);
 			}
 		}
-		
+
 		Object result = null;
 		try {
 			if (parameters == null) {

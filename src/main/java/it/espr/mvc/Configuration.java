@@ -14,6 +14,14 @@ import org.slf4j.LoggerFactory;
 import it.espr.injector.Utils;
 import it.espr.mvc.config.RouteConfig;
 import it.espr.mvc.config.ViewConfig;
+import it.espr.mvc.converter.StringToBooleanConverter;
+import it.espr.mvc.converter.StringToDoubleConverter;
+import it.espr.mvc.converter.StringToIntegerConverter;
+import it.espr.mvc.converter.StringToObjectConverter;
+import it.espr.mvc.converter.StringToStringConverter;
+import it.espr.mvc.converter.StringToTypeConverter;
+import it.espr.mvc.json.Json;
+import it.espr.mvc.json.JsonFinder;
 import it.espr.mvc.view.SimpleView;
 import it.espr.mvc.view.View;
 import it.espr.mvc.view.json.JsonView;
@@ -36,6 +44,8 @@ public abstract class Configuration extends it.espr.injector.Configuration {
 	Map<String, Route> routes = new LinkedHashMap<>();
 
 	Map<String, Class<? extends View>> views = new LinkedHashMap<>();
+
+	List<Class<? extends StringToTypeConverter<?>>> converters = new ArrayList<>();
 
 	public RouteConfig route() {
 		RouteConfig routeConfig = new RouteConfig();
@@ -86,8 +96,19 @@ public abstract class Configuration extends it.espr.injector.Configuration {
 		routes.put(key, route);
 	}
 
+	protected void addConverter(Class<? extends StringToTypeConverter<?>> converter) {
+		
+	}
+	
 	protected final void configure() {
 		this.configureMvc();
+
+		this.addConverter(StringToStringConverter.class);
+		this.addConverter(StringToBooleanConverter.class);
+		this.addConverter(StringToDoubleConverter.class);
+		this.addConverter(StringToIntegerConverter.class);
+		this.addConverter(StringToObjectConverter.class);
+		this.bind(converters).named("StringToTypeConverters");
 
 		for (RouteConfig routeConfig : routesConfiguration) {
 			for (String requestType : routeConfig.getRequestTypes()) {
@@ -104,6 +125,11 @@ public abstract class Configuration extends it.espr.injector.Configuration {
 		this.addDefaultViews();
 		if (this.views.containsKey("application/json")) {
 			this.bind(JsonView.class).to(this.views.get("application/json"));
+		}
+
+		Class<? extends Json> json = new JsonFinder().find();
+		if (json != null) {
+			this.bind(Json.class).to(json);
 		}
 
 		this.bind(routes).named("MvcRoutes");

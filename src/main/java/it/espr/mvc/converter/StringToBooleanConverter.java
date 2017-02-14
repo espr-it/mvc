@@ -2,7 +2,7 @@ package it.espr.mvc.converter;
 
 import it.espr.injector.Utils;
 
-public class StringToBooleanConverter implements StringToTypeConverter<Boolean> {
+public class StringToBooleanConverter extends AStringToCastingConverter<Boolean> {
 
 	@Override
 	public Class<Boolean> getType() {
@@ -23,5 +23,4 @@ public class StringToBooleanConverter implements StringToTypeConverter<Boolean> 
 		}
 		return null;
 	}
-
 }

@@ -2,7 +2,7 @@ package it.espr.mvc.converter;
 
 import it.espr.injector.Utils;
 
-public class StringToDoubleConverter implements StringToTypeConverter<Double> {
+public class StringToDoubleConverter extends AStringToCastingConverter<Double> {
 
 	@Override
 	public Class<Double> getType() {

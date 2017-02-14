@@ -1,7 +1,10 @@
 package it.espr.mvc.converter;
 
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
+
+import javax.inject.Named;
 
 public class StringToTypeConverterFactory {
 
@@ -23,11 +26,10 @@ public class StringToTypeConverterFactory {
 		primitivesToClass.put(boolean.class, Boolean.class);
 	}
 
-	public StringToTypeConverterFactory() {
-		this.add(new StringToStringConverter());
-		this.add(new StringToDoubleConverter());
-		this.add(new StringToIntegerConverter());
-		this.add(new StringToBooleanConverter());
+	public StringToTypeConverterFactory(@Named("StringToTypeConverters") List<StringToTypeConverter<?>> converters) {
+		for (StringToTypeConverter<?> converter : converters) {
+			this.add(converter);
+		}
 	}
 
 	public <Type> void add(StringToTypeConverter<Type> converter) {

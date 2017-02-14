@@ -2,7 +2,7 @@ package it.espr.mvc.converter;
 
 import it.espr.injector.Utils;
 
-public class StringToIntegerConverter implements StringToTypeConverter<Integer> {
+public class StringToIntegerConverter extends AStringToCastingConverter<Integer> {
 
 	@Override
 	public Class<Integer> getType() {
@@ -20,5 +20,4 @@ public class StringToIntegerConverter implements StringToTypeConverter<Integer> 
 		}
 		return null;
 	}
-
 }

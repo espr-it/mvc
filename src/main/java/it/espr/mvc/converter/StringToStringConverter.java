@@ -1,6 +1,6 @@
 package it.espr.mvc.converter;
 
-public class StringToStringConverter implements StringToTypeConverter<String> {
+public class StringToStringConverter extends AStringToCastingConverter<String> {
 
 	@Override
 	public Class<String> getType() {
