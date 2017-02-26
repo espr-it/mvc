@@ -11,6 +11,8 @@ import java.util.regex.Pattern;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.google.gson.GsonBuilder;
+
 import it.espr.injector.Utils;
 import it.espr.mvc.config.RouteConfig;
 import it.espr.mvc.config.ViewConfig;
@@ -24,6 +26,7 @@ import it.espr.mvc.json.Json;
 import it.espr.mvc.json.JsonFinder;
 import it.espr.mvc.view.SimpleView;
 import it.espr.mvc.view.View;
+import it.espr.mvc.view.json.GsonView;
 import it.espr.mvc.view.json.JsonView;
 import it.espr.mvc.view.json.JsonViewFinder;
 
@@ -31,7 +34,7 @@ public abstract class Configuration extends it.espr.injector.Configuration {
 
 	private static final Pattern PATH_VARIABLE_PATTERN = Pattern.compile("\\((.*?)\\)");
 
-	public static final String DEFAULT_MATCHER = "[-_0-9a-zA-Z]+";
+	public static final String DEFAULT_MATCHER = "[-_0-9a-zA-Z ]+";
 
 	private static final Logger log = LoggerFactory.getLogger(Configuration.class);
 
@@ -76,13 +79,17 @@ public abstract class Configuration extends it.espr.injector.Configuration {
 			}
 
 			path = this.parsePathVariables(pathVariables, path);
-			int index = pathVariables == null ? 0 : pathVariables.size();
+			int pathVariablesSize = pathVariables.size();
 
 			Class<?>[] methodParameters = m.getParameterTypes();
 			if (methodParameters != null && methodParameters.length > 0) {
 				params = new LinkedHashMap<>();
-				for (int i = index; i < methodParameters.length; i++) {
-					params.put(parameters.get(i - index), methodParameters[i]);
+				for (int i = 0; i < methodParameters.length; i++) {
+					if (pathVariablesSize > i) {
+						params.put(pathVariables.get(i).p1, methodParameters[i]);
+					} else {
+						params.put(parameters.get(i - pathVariablesSize), methodParameters[i]);
+					}
 				}
 			}
 		} catch (Exception e) {
@@ -97,9 +104,9 @@ public abstract class Configuration extends it.espr.injector.Configuration {
 	}
 
 	protected void addConverter(Class<? extends StringToTypeConverter<?>> converter) {
-		
+		this.converters.add(converter);
 	}
-	
+
 	protected final void configure() {
 		this.configureMvc();
 
@@ -124,7 +131,11 @@ public abstract class Configuration extends it.espr.injector.Configuration {
 
 		this.addDefaultViews();
 		if (this.views.containsKey("application/json")) {
-			this.bind(JsonView.class).to(this.views.get("application/json"));
+			Class<? extends View> jsonView = this.views.get("application/json");
+			if (jsonView.equals(GsonView.class)) {
+				this.bind(new GsonBuilder().disableHtmlEscaping().setDateFormat("EEE, dd MMM yyyy HH:mm:ss zzz").create());
+			}
+			this.bind(JsonView.class).to(jsonView);
 		}
 
 		Class<? extends Json> json = new JsonFinder().find();

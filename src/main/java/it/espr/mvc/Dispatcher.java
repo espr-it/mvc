@@ -3,7 +3,9 @@ package it.espr.mvc;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStream;
+import java.net.URLDecoder;
 import java.util.ArrayList;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
@@ -61,8 +63,8 @@ public class Dispatcher extends HttpServlet {
 		this.dispatch(request, response);
 	}
 
-	private void dispatch(HttpServletRequest request, HttpServletResponse response) {
-		String uri = request.getRequestURI();
+	private void dispatch(HttpServletRequest request, HttpServletResponse response) throws IOException {
+		String uri = URLDecoder.decode(request.getRequestURI(), "UTF-8");
 		String requestType = request.getMethod().toLowerCase();
 
 		Pair<Route, Map<String, Object>> pair = this.router.route(uri, requestType);
@@ -76,16 +78,19 @@ public class Dispatcher extends HttpServlet {
 		List<Object> parameters = null;
 		if ((pair.p2 != null && pair.p2.size() > 0) || (route.parameters != null && route.parameters.size() > 0)) {
 			parameters = new ArrayList<>();
-
+			List<String> pathVariables = new ArrayList<>();
 			if (pair.p2 != null && pair.p2.size() > 0) {
 				for (Entry<String, Object> entry : pair.p2.entrySet()) {
-					parameters.add(entry.getValue());
+					pathVariables.add((String) entry.getValue());
 				}
 			}
 
 			try {
+				Iterator<String> pathVariable = pathVariables.iterator();
 				for (Entry<String, Class<?>> parameter : route.parameters.entrySet()) {
-					if (parameter.getKey().startsWith("header")) {
+					if (pathVariable.hasNext()) {
+						parameters.add(this.stringToTypeConverterFactory.convert(parameter.getValue(), pathVariable.next()));
+					} else if (parameter.getKey().startsWith("header")) {
 						parameters.add(this.stringToTypeConverterFactory.convert(parameter.getValue(), request.getHeader(parameter.getKey())));
 					} else if ("post".equals(requestType)) {
 						if (parameter.getValue().equals(InputStream.class)) {

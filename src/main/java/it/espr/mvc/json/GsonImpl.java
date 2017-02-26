@@ -4,7 +4,12 @@ import com.google.gson.Gson;
 
 public class GsonImpl implements Json {
 
-	private Gson gson = new Gson();
+	private Gson gson;
+
+	public GsonImpl(Gson gson) {
+		super();
+		this.gson = gson;
+	}
 
 	@Override
 	public <Type> Type deserialise(Class<Type> type, String string) {

@@ -39,17 +39,17 @@ public class StringToTypeConverterFactory {
 	@SuppressWarnings("unchecked")
 	private <Type> StringToTypeConverter<Type> getConverter(Class<Type> type) throws StringToTypeConverterException {
 		Class<?> c = primitivesToClass.containsKey(type) ? primitivesToClass.get(type) : type;
-		StringToTypeConverter<Type> converter = (StringToTypeConverter<Type>) converters.get(c);
-		if (converter == null) {
-			throw new StringToTypeConverterException("Can't find any converter for type '" + c + "'");
-		}
-		return converter;
+		return (StringToTypeConverter<Type>) converters.get(c);
 	}
 
 	public <Type> Type convert(Class<Type> type, String value) throws StringToTypeConverterException {
 		StringToTypeConverter<Type> converter = this.getConverter(type);
-		Type converted = converter.convert(value);
-		return this.cast(type, converted);
+		if (converter != null) {
+			return this.cast(type, converter.convert(value));
+		} else {
+			// try json converter
+			return converters.get(Object.class).convert(type, value);
+		}
 	}
 
 	@SuppressWarnings("unchecked")
