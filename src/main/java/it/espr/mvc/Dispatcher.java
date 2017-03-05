@@ -20,7 +20,6 @@ import org.slf4j.LoggerFactory;
 
 import it.espr.injector.Injector;
 import it.espr.mvc.converter.StringToTypeConverterFactory;
-import it.espr.mvc.json.Json;
 
 @SuppressWarnings("serial")
 public class Dispatcher extends HttpServlet {
@@ -33,8 +32,6 @@ public class Dispatcher extends HttpServlet {
 
 	private ViewResolver viewResolver;
 
-	private Json json;
-
 	private StringToTypeConverterFactory stringToTypeConverterFactory;
 
 	public void init() throws ServletException {
@@ -45,7 +42,6 @@ public class Dispatcher extends HttpServlet {
 			this.router = this.injector.get(Router.class);
 			this.viewResolver = this.injector.get(ViewResolver.class);
 			this.stringToTypeConverterFactory = this.injector.get(StringToTypeConverterFactory.class);
-			this.json = this.injector.get(Json.class);
 
 		} catch (Exception e) {
 			log.error("Problem when loading configuration for mvc dispatcher", e);

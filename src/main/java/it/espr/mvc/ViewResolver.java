@@ -11,20 +11,30 @@ import javax.servlet.http.HttpServletResponse;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import it.espr.mvc.response.Redirect;
+import it.espr.mvc.response.Redirector;
 import it.espr.mvc.view.View;
 
 public class ViewResolver {
 
 	private final Logger log = LoggerFactory.getLogger(ViewResolver.class);
 
+	private Redirector redirector;
+
 	private Map<String, View> views;
 
-	public ViewResolver(@Named("MvcViews") Map<String, View> views) {
+	public ViewResolver(Redirector redirector, @Named("MvcViews") Map<String, View> views) {
 		super();
+		this.redirector = redirector;
 		this.views = views;
 	}
 
 	public void resolve(HttpServletRequest request, HttpServletResponse response, Object data) {
+		if (data instanceof Redirect) {
+			this.redirector.redirect(response, (Redirect) data);
+			return;
+		}
+
 		List<String> accepts = this.getAccept(request.getHeader("accept"));
 		View view = null;
 		for (String accept : accepts) {
