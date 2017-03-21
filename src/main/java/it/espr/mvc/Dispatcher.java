@@ -19,7 +19,10 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import it.espr.injector.Injector;
+import it.espr.mvc.cache.CacheFactory;
 import it.espr.mvc.converter.StringToTypeConverterFactory;
+import it.espr.mvc.route.Route;
+import it.espr.mvc.route.Router;
 
 @SuppressWarnings("serial")
 public class Dispatcher extends HttpServlet {
@@ -34,49 +37,77 @@ public class Dispatcher extends HttpServlet {
 
 	private StringToTypeConverterFactory stringToTypeConverterFactory;
 
+	private CacheFactory cacheFactory;
+
 	public void init() throws ServletException {
 		try {
-			Configuration configuration = (Configuration) Class.forName(this.getInitParameter("configuration")).newInstance();
-			this.injector = Injector.injector(configuration);
-
-			this.router = this.injector.get(Router.class);
-			this.viewResolver = this.injector.get(ViewResolver.class);
-			this.stringToTypeConverterFactory = this.injector.get(StringToTypeConverterFactory.class);
-
+			MvcConfiguration configuration = (MvcConfiguration) Class.forName(this.getInitParameter("configuration")).newInstance();
+			this.init(configuration);
 		} catch (Exception e) {
 			log.error("Problem when loading configuration for mvc dispatcher", e);
 			throw new ServletException("Can't start app.", e);
 		}
 	}
 
+	void init(MvcConfiguration configuration) throws ServletException {
+		this.injector = Injector.injector(configuration);
+
+		this.router = this.injector.get(Router.class);
+		this.viewResolver = this.injector.get(ViewResolver.class);
+		this.stringToTypeConverterFactory = this.injector.get(StringToTypeConverterFactory.class);
+		this.cacheFactory = this.injector.get(CacheFactory.class);
+	}
+
 	@Override
 	protected void doGet(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
+		log.debug("Received GET request.");
 		this.dispatch(request, response);
 	}
 
 	@Override
 	protected void doPost(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
+		log.debug("Received POST request.");
 		this.dispatch(request, response);
 	}
 
 	private void dispatch(HttpServletRequest request, HttpServletResponse response) throws IOException {
-		String uri = URLDecoder.decode(request.getRequestURI(), "UTF-8");
+		log.debug("Dispatching request.");
 		String requestType = request.getMethod().toLowerCase();
+		String uri = URLDecoder.decode(request.getRequestURI(), "UTF-8");
 
+		log.debug("Routing {} {}.", requestType, uri);
 		Pair<Route, Map<String, Object>> pair = this.router.route(uri, requestType);
 
 		if (pair == null) {
+			log.debug("Couldn't find a route for {} {}.", requestType, uri);
 			return;
 		}
 
 		Route route = pair.p1;
+		Map<String, Object> pathVariablesConfig = pair.p2;
+
+		log.debug("Checking cache for {} {} ({})", requestType, uri, route);
+		Object result = this.cacheFactory.get(requestType, uri, route);
+		if (result == null) {
+			log.debug("Routing request {} {} to {}", requestType, uri, route);
+			result = this.route(request, route, pathVariablesConfig);
+			log.debug("Caching result for {} {} ({})", requestType, uri, route);
+			this.cacheFactory.put(requestType, uri, route, result);
+		}
+
+		log.debug("Resolving view for {} {}", requestType, uri);
+		this.viewResolver.resolve(request, response, result);
+	}
+
+	private Object route(HttpServletRequest request, Route route, Map<String, Object> pathVariablesConfig) {
+		String requestType = request.getMethod().toLowerCase();
 		Object model = injector.get(route.model);
 		List<Object> parameters = null;
-		if ((pair.p2 != null && pair.p2.size() > 0) || (route.parameters != null && route.parameters.size() > 0)) {
+		if ((pathVariablesConfig != null && pathVariablesConfig.size() > 0) || (route.parameters != null && route.parameters.size() > 0)) {
 			parameters = new ArrayList<>();
 			List<String> pathVariables = new ArrayList<>();
-			if (pair.p2 != null && pair.p2.size() > 0) {
-				for (Entry<String, Object> entry : pair.p2.entrySet()) {
+			if (pathVariablesConfig != null && pathVariablesConfig.size() > 0) {
+				for (Entry<String, Object> entry : pathVariablesConfig.entrySet()) {
 					pathVariables.add((String) entry.getValue());
 				}
 			}
@@ -115,8 +146,7 @@ public class Dispatcher extends HttpServlet {
 		} catch (Exception e) {
 			log.error("Problem when calling model {}", model, e);
 		}
-
-		this.viewResolver.resolve(request, response, result);
+		return result;
 	}
 
 	private String readBody(HttpServletRequest request) {

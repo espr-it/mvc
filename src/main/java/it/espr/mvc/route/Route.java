@@ -1,11 +1,13 @@
-package it.espr.mvc;
+package it.espr.mvc.route;
 
 import java.lang.reflect.Method;
 import java.util.List;
 import java.util.Map;
 import java.util.regex.Pattern;
 
-class Route {
+import it.espr.mvc.Pair;
+
+public class Route {
 
 	public final Pattern path;
 	public final String requestType;

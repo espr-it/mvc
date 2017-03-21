@@ -35,7 +35,7 @@ public class StringToObjectConverter extends AStringToCastingConverter<Object> {
 				throw new StringToTypeConverterException("Problem when converting from json", e);
 			}
 		} else {
-			throw new UnsupportedOperationException("No json converter registered");
+			throw new UnsupportedOperationException("No json serialiser/deserialiser registered - implement it.espr.mvc.json.Json and bind it.");
 		}
 	}
 }

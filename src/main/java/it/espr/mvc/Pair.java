@@ -2,9 +2,9 @@ package it.espr.mvc;
 
 public class Pair<First, Second> {
 
-	First p1;
+	public First p1;
 
-	Second p2;
+	public Second p2;
 
 	public Pair(First p1, Second p2) {
 		super();

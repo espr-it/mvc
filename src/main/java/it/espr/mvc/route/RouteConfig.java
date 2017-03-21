@@ -1,8 +1,10 @@
-package it.espr.mvc.config;
+package it.espr.mvc.route;
 
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+
+import it.espr.mvc.cache.CacheConfig;
 
 public class RouteConfig {
 
@@ -23,6 +25,10 @@ public class RouteConfig {
 			this.controller.method = method;
 			return this.controller;
 		}
+
+		public RouteConfig config() {
+			return RouteConfig.this.config();
+		}
 	}
 
 	public class Controller {
@@ -33,10 +39,15 @@ public class RouteConfig {
 
 		List<String> parameters;
 
-		public void with(String... parameters) {
+		public Controller with(String... parameters) {
 			if (parameters != null && parameters.length > 0) {
 				this.parameters = new ArrayList<>(Arrays.asList(parameters));
 			}
+			return this;
+		}
+
+		public RouteConfig config() {
+			return RouteConfig.this.config();
 		}
 	}
 
@@ -45,6 +56,8 @@ public class RouteConfig {
 	private String[] requestTypes;
 
 	private Controller controller;
+
+	private CacheConfig cacheConfig;
 
 	public RequestType get(String uri) {
 		return this.requestType(uri, "get");
@@ -78,15 +91,27 @@ public class RouteConfig {
 	}
 
 	public List<String> getParameters() {
-		return this.controller.parameters;
+		return this.controller == null ? null : this.controller.parameters;
 	}
 
 	public String getMethod() {
-		return this.controller.method;
+		return this.controller == null ? null : this.controller.method;
 	}
 
 	public Class<?> getClazz() {
-		return this.controller.clazz;
+		return this.controller == null ? null : this.controller.clazz;
 	}
 
+	CacheConfig getCacheConfig() {
+		return cacheConfig;
+	}
+
+	RouteConfig config() {
+		return this;
+	}
+
+	RouteConfig cache(CacheConfig cacheConfig) {
+		this.cacheConfig = cacheConfig;
+		return this;
+	}
 }
