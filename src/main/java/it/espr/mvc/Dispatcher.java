@@ -96,7 +96,7 @@ public class Dispatcher extends HttpServlet {
 		}
 
 		log.debug("Resolving view for {} {}", requestType, uri);
-		this.viewResolver.resolve(request, response, result);
+		this.viewResolver.resolve(request, response, route, result);
 	}
 
 	private Object route(HttpServletRequest request, Route route, Map<String, Object> pathVariablesConfig) {

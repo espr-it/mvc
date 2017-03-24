@@ -1,10 +1,12 @@
 package it.espr.mvc.view.json;
 
+import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import it.espr.mvc.route.Route;
 import it.espr.mvc.view.View;
 
 public abstract class JsonView implements View {
@@ -12,7 +14,7 @@ public abstract class JsonView implements View {
 	private static final Logger log = LoggerFactory.getLogger(JsonView.class);
 
 	@Override
-	public void view(HttpServletResponse response, Object data) {
+	public void view(HttpServletRequest request, HttpServletResponse response, Route route, Object data) {
 		if (data != null) {
 			try {
 				response.setCharacterEncoding("UTF-8");

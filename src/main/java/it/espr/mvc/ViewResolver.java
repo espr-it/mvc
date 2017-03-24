@@ -11,27 +11,38 @@ import javax.servlet.http.HttpServletResponse;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import it.espr.mvc.response.Forward;
+import it.espr.mvc.response.Forwarder;
 import it.espr.mvc.response.Redirect;
 import it.espr.mvc.response.Redirector;
+import it.espr.mvc.route.Route;
 import it.espr.mvc.view.View;
 
 public class ViewResolver {
 
 	private final Logger log = LoggerFactory.getLogger(ViewResolver.class);
 
-	private Redirector redirector;
-
 	private Map<String, View> views;
 
-	public ViewResolver(Redirector redirector, @Named("MvcViews") Map<String, View> views) {
+	private Redirector redirector;
+
+	private Forwarder forwarder;
+
+	public ViewResolver(@Named("MvcViews") Map<String, View> views, Redirector redirector, Forwarder forwarder) {
 		super();
-		this.redirector = redirector;
 		this.views = views;
+		this.redirector = redirector;
+		this.forwarder = forwarder;
 	}
 
-	public void resolve(HttpServletRequest request, HttpServletResponse response, Object data) {
+	public void resolve(HttpServletRequest request, HttpServletResponse response, Route route, Object data) {
 		if (data instanceof Redirect) {
 			this.redirector.redirect(response, (Redirect) data);
+			return;
+		}
+
+		if (data instanceof Forward) {
+			this.forwarder.forward(request, response, (Forward) data);
 			return;
 		}
 
@@ -50,7 +61,7 @@ public class ViewResolver {
 			return;
 		}
 
-		view.view(response, data);
+		view.view(request, response, route, data);
 	}
 
 	public List<String> getAccept(String header) {

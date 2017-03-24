@@ -16,6 +16,7 @@ import it.espr.mvc.json.Json;
 import it.espr.mvc.json.JsonFinder;
 import it.espr.mvc.route.Route;
 import it.espr.mvc.route.RouteConfig;
+import it.espr.mvc.route.StaticResourcesRoute;
 import it.espr.mvc.view.View;
 import it.espr.mvc.view.ViewConfig;
 import it.espr.mvc.view.json.GsonView;
@@ -70,6 +71,7 @@ public abstract class MvcConfiguration extends it.espr.injector.Configuration {
 
 		// configure routes
 		log.debug("Configuring routes...");
+		route().get("/static/(.*)").to(StaticResourcesRoute.class);
 		List<Route> routes = configuratorFactory.routeConfigurator().configure();
 		this.bind(routes).named("MvcRoutes");
 		log.debug("Configured routes: {}", routes.size());
