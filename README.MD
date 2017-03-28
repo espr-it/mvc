@@ -1,4 +1,5 @@
-# Simple MVC framework [![Build Status](https://travis-ci.org/espr-it/mvc.svg?branch=master)](https://travis-ci.org/espr-it/mvc) [![codecov.io](http://codecov.io/github/espr-it/mvc/coverage.svg?branch=master)](http://codecov.io/github/espr-it/mvc?branch=master)
+# Simple MVC framework
+[![Build Status](https://travis-ci.org/espr-it/mvc.svg?branch=master)](https://travis-ci.org/espr-it/mvc) [![Maven Central](https://maven-badges.herokuapp.com/maven-central/it.espr/esprit-mvc/badge.svg)](https://maven-badges.herokuapp.com/maven-central/it.espr/esprit-mvc) [![codecov.io](http://codecov.io/github/espr-it/mvc/coverage.svg?branch=master)](http://codecov.io/github/espr-it/mvc?branch=master)
 
 Very simple and minimalistic Model & View & Controller framework for Java applications. Allows routing of requests to simple Java Beans and automatically resolving into simple text or json views. It's using esprit-injector under cover to instatiate beans.
 
