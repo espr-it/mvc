@@ -40,6 +40,10 @@ public abstract class MvcConfiguration extends it.espr.injector.Configuration {
 		return configuratorFactory.routeConfigurator().route();
 	}
 
+	protected void registerConverter(Class<? extends StringToTypeConverter<?>> converter) {
+		configuratorFactory.stringToTypeConverterConfigurator().register(converter);
+	}
+
 	protected ViewConfig view(String... accept) {
 		return configuratorFactory.viewConfigurator().view(accept);
 	}
@@ -71,7 +75,7 @@ public abstract class MvcConfiguration extends it.espr.injector.Configuration {
 
 		// configure routes
 		log.debug("Configuring routes...");
-		route().get("/static/(.*)").to(StaticResourcesRoute.class);
+		route().get("/static/(.*:path)").to(StaticResourcesRoute.class, "get");
 		List<Route> routes = configuratorFactory.routeConfigurator().configure();
 		this.bind(routes).named("MvcRoutes");
 		log.debug("Configured routes: {}", routes.size());

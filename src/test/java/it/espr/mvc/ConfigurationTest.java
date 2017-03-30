@@ -55,7 +55,7 @@ public class ConfigurationTest {
 		};
 		configuration.configure();
 
-		verify(routeConfigurator).route();
+		verify(routeConfigurator, times(2)).route();
 		verify(routeConfigurator.route()).get("/parse/(.*:id)");
 		verify(routeConfigurator.route().get("/parse/(.*:id)")).to(SimpleModel.class, "parse");
 		verify(routeConfigurator.route().get("/parse/(.*:id)").to(SimpleModel.class, "parse")).with("requestParameter");

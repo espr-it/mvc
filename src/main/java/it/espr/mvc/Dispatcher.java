@@ -117,8 +117,8 @@ public class Dispatcher extends HttpServlet {
 				for (Entry<String, Class<?>> parameter : route.parameters.entrySet()) {
 					if (pathVariable.hasNext()) {
 						parameters.add(this.stringToTypeConverterFactory.convert(parameter.getValue(), pathVariable.next()));
-					} else if (parameter.getKey().startsWith("header")) {
-						parameters.add(this.stringToTypeConverterFactory.convert(parameter.getValue(), request.getHeader(parameter.getKey())));
+					} else if (parameter.getKey().startsWith("header-")) {
+						parameters.add(this.stringToTypeConverterFactory.convert(parameter.getValue(), request.getHeader(parameter.getKey().substring("header-".length()))));
 					} else if ("post".equals(requestType)) {
 						if (parameter.getValue().equals(InputStream.class)) {
 							parameters.add(request.getInputStream());
