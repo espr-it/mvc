@@ -19,6 +19,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import it.espr.injector.Injector;
+import it.espr.injector.Utils;
 import it.espr.mvc.cache.CacheFactory;
 import it.espr.mvc.converter.StringToTypeConverterFactory;
 import it.espr.mvc.route.Route;
@@ -74,28 +75,29 @@ public class Dispatcher extends HttpServlet {
 		log.debug("Dispatching request.");
 		String requestType = request.getMethod().toLowerCase();
 		String uri = URLDecoder.decode(request.getRequestURI(), "UTF-8");
+		String url = uri + (Utils.isEmpty(request.getQueryString()) ? "" : "?" + request.getQueryString()); 
 
-		log.debug("Routing {} {}.", requestType, uri);
+		log.debug("Routing {} {}.", requestType, url);
 		Pair<Route, Map<String, Object>> pair = this.router.route(uri, requestType);
 
 		if (pair == null) {
-			log.debug("Couldn't find a route for {} {}.", requestType, uri);
+			log.debug("Couldn't find a route for {} {}.", requestType, url);
 			return;
 		}
 
 		Route route = pair.p1;
 		Map<String, Object> pathVariablesConfig = pair.p2;
 
-		log.debug("Checking cache for {} {} ({})", requestType, uri, route);
-		Object result = this.cacheFactory.get(requestType, uri, route);
+		log.debug("Checking cache for {} {} ({})", requestType, url, route);
+		Object result = this.cacheFactory.get(requestType, url, route);
 		if (result == null) {
-			log.debug("Routing request {} {} to {}", requestType, uri, route);
+			log.debug("Routing request {} {} to {}", requestType, url, route);
 			result = this.route(request, route, pathVariablesConfig);
-			log.debug("Caching result for {} {} ({})", requestType, uri, route);
-			this.cacheFactory.put(requestType, uri, route, result);
+			log.debug("Caching result for {} {} ({})", requestType, url, route);
+			this.cacheFactory.put(requestType, url, route, result);
 		}
 
-		log.debug("Resolving view for {} {}", requestType, uri);
+		log.debug("Resolving view for {} {}", requestType, url);
 		this.viewResolver.resolve(request, response, route, result);
 	}
 
