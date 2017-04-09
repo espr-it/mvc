@@ -13,7 +13,8 @@ public class InMemoryCache extends ACache implements Cache {
 	public InMemoryCache(CacheConfig cacheConfig) {
 		super(cacheConfig);
 		this.cacheConfig = cacheConfig;
-		cache = new ConcurrentLinkedHashMap.Builder<String, CacheItem>().maximumWeightedCapacity(200).build();
+		int size = cacheConfig.size > 0 ? cacheConfig.size : 200;
+		cache = new ConcurrentLinkedHashMap.Builder<String, CacheItem>().maximumWeightedCapacity(size).build();
 	}
 
 	@Override
