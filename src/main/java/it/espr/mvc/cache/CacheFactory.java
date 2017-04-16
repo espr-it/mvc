@@ -26,7 +26,7 @@ public class CacheFactory implements Cache {
 	public void put(String requestType, String uri, Route route, Object data) {
 		List<Cache> routeCaches = caches.get(route);
 		if (routeCaches == null) {
-			log.trace("No cache configured for route {}", route);
+			log.debug("No cache configured for route {}", route);
 			return;
 		}
 
@@ -40,7 +40,7 @@ public class CacheFactory implements Cache {
 	public Object get(String requestType, String uri, Route route) {
 		List<Cache> routeCaches = caches.get(route);
 		if (routeCaches == null) {
-			log.trace("No cache configured for route {}", route);
+			log.debug("No cache configured for route {}", route);
 			return null;
 		}
 

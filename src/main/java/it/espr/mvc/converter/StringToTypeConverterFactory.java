@@ -6,7 +6,12 @@ import java.util.Map;
 
 import javax.inject.Named;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 public class StringToTypeConverterFactory {
+
+	private static final Logger log = LoggerFactory.getLogger(StringToTypeConverterFactory.class);
 
 	private final Map<Class<?>, StringToTypeConverter<?>> converters = new HashMap<>();
 
@@ -44,12 +49,18 @@ public class StringToTypeConverterFactory {
 
 	public <Type> Type convert(Class<Type> type, String value) throws StringToTypeConverterException {
 		StringToTypeConverter<Type> converter = this.getConverter(type);
+		Type converted = null;
 		if (converter != null) {
-			return this.cast(type, converter.convert(value));
+			log.debug("Converting to {} with {}", type, converter);
+			converted = this.cast(type, converter.convert(value));
+			log.debug("Converted to {} with {}", type, converter);
 		} else {
 			// try json converter
-			return converters.get(Object.class).convert(type, value);
+			log.debug("Converting to json", type, converter);
+			converted = converters.get(Object.class).convert(type, value);
+			log.debug("Converted to json", type, converter);
 		}
+		return converted;
 	}
 
 	@SuppressWarnings("unchecked")

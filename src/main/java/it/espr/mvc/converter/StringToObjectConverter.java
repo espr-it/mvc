@@ -29,7 +29,10 @@ public class StringToObjectConverter extends AStringToCastingConverter<Object> {
 	public <Cast> Cast convert(Class<Cast> c, String value) throws StringToTypeConverterException {
 		if (json != null) {
 			try {
-				return this.json.deserialise(c, value);
+				log.debug("Deserialising with {}", json);
+				Cast data = this.json.deserialise(c, value);
+				log.debug("Deserialised with {}", json);
+				return data;
 			} catch (Exception e) {
 				log.error("Problem when deseriliasing {} to {}", value, c, e);
 				throw new StringToTypeConverterException("Problem when converting from json", e);

@@ -75,10 +75,11 @@ public class Dispatcher extends HttpServlet {
 		log.debug("Dispatching request.");
 		String requestType = request.getMethod().toLowerCase();
 		String uri = URLDecoder.decode(request.getRequestURI(), "UTF-8");
-		String url = uri + (Utils.isEmpty(request.getQueryString()) ? "" : "?" + request.getQueryString()); 
+		String url = uri + (Utils.isEmpty(request.getQueryString()) ? "" : "?" + request.getQueryString());
 
-		log.debug("Routing {} {}.", requestType, url);
+		log.debug("Looking up a route for {} {}.", requestType, url);
 		Pair<Route, Map<String, Object>> pair = this.router.route(uri, requestType);
+		log.debug("Found the route for {} {}.", requestType, url);
 
 		if (pair == null) {
 			log.debug("Couldn't find a route for {} {}.", requestType, url);
@@ -95,17 +96,22 @@ public class Dispatcher extends HttpServlet {
 			result = this.route(request, route, pathVariablesConfig);
 			log.debug("Caching result for {} {} ({})", requestType, url, route);
 			this.cacheFactory.put(requestType, url, route, result);
+			log.debug("Cached result for {} {} ({})", requestType, url, route);
 		}
 
 		log.debug("Resolving view for {} {}", requestType, url);
 		this.viewResolver.resolve(request, response, route, result);
+		log.debug("View resolved for {} {}", requestType, url);
 	}
 
 	private Object route(HttpServletRequest request, Route route, Map<String, Object> pathVariablesConfig) {
 		String requestType = request.getMethod().toLowerCase();
+		log.debug("Creating route instance");
 		Object model = injector.get(route.model);
+		log.debug("Created route instance");
 		List<Object> parameters = null;
 		if ((pathVariablesConfig != null && pathVariablesConfig.size() > 0) || (route.parameters != null && route.parameters.size() > 0)) {
+			log.debug("Collecting path variables");
 			parameters = new ArrayList<>();
 			List<String> pathVariables = new ArrayList<>();
 			if (pathVariablesConfig != null && pathVariablesConfig.size() > 0) {
@@ -113,6 +119,7 @@ public class Dispatcher extends HttpServlet {
 					pathVariables.add((String) entry.getValue());
 				}
 			}
+			log.debug("Collected path variables {}", pathVariables);
 
 			try {
 				Iterator<String> pathVariable = pathVariables.iterator();
