@@ -2,7 +2,7 @@
 
 [![Build Status](https://travis-ci.org/espr-it/mvc.svg?branch=master)](https://travis-ci.org/espr-it/mvc) [![Maven Central](https://maven-badges.herokuapp.com/maven-central/it.espr/esprit-mvc/badge.svg)](https://maven-badges.herokuapp.com/maven-central/it.espr/esprit-mvc) [![codecov.io](http://codecov.io/github/espr-it/mvc/coverage.svg?branch=master)](http://codecov.io/github/espr-it/mvc?branch=master)
 
-The goal of the project is to offer simple, fast, small and testable MVC framework for java applications. IT was designed together with esprit-injector for running on Google App Engine standard environment - but it's not limited to it. You can run it in any servlet container.
+The goal of the project is to offer simple, fast, small and testable MVC framework for java applications. IT was designed together with [esprit-injector](https://github.com/espr-it/injector) for running on Google App Engine standard environment - but it's not limited to it. You can run it in any servlet container.
 
 All controllers (we call them routes) can be simple beans with no dependency on the underlying technology - so no servlet requests, responses or template rendering. Which means everything is super testable and you can even import beans as an external jar and run them inside of the container. You just need to define WebConfig with bindings and routes and this library will take care of all conversions, request mapping and response delivery.
 
