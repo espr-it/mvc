@@ -93,7 +93,7 @@ public class Dispatcher extends HttpServlet {
 		Object result = this.cacheFactory.get(requestType, url, route);
 		if (result == null) {
 			log.debug("Routing request {} {} to {}", requestType, url, route);
-			result = this.route(request, route, pathVariablesConfig);
+			result = this.route(request, response, route, pathVariablesConfig);
 			log.debug("Caching result for {} {} ({})", requestType, url, route);
 			this.cacheFactory.put(requestType, url, route, result);
 			log.debug("Cached result for {} {} ({})", requestType, url, route);
@@ -104,7 +104,7 @@ public class Dispatcher extends HttpServlet {
 		log.debug("View resolved for {} {}", requestType, url);
 	}
 
-	private Object route(HttpServletRequest request, Route route, Map<String, Object> pathVariablesConfig) {
+	private Object route(HttpServletRequest request, HttpServletResponse response, Route route, Map<String, Object> pathVariablesConfig) {
 		String requestType = request.getMethod().toLowerCase();
 		log.debug("Creating route instance");
 		Object model = injector.get(route.model);
@@ -128,6 +128,10 @@ public class Dispatcher extends HttpServlet {
 						parameters.add(this.stringToTypeConverterFactory.convert(parameter.getValue(), pathVariable.next()));
 					} else if (parameter.getKey().startsWith("header-")) {
 						parameters.add(this.stringToTypeConverterFactory.convert(parameter.getValue(), request.getHeader(parameter.getKey().substring("header-".length()))));
+					} else if (parameter.getValue().equals(HttpServletRequest.class)) {
+						parameters.add(request);
+					} else if (parameter.getValue().equals(HttpServletResponse.class)) {
+						parameters.add(response);
 					} else if ("post".equals(requestType)) {
 						if (parameter.getValue().equals(InputStream.class)) {
 							parameters.add(request.getInputStream());

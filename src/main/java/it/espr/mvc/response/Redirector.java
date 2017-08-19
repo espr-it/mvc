@@ -29,6 +29,7 @@ public class Redirector {
 				response.setHeader("Cache-Control", "no-cache,no-store,max-age=0");
 				response.setDateHeader("Expires", 1);
 			}
+			response.sendRedirect(redirect.url);
 		} catch (Exception exception) {
 			log.error("Problem when redirecting to {}", redirect.url, exception);
 		}
