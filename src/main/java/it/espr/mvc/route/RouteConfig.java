@@ -6,6 +6,7 @@ import java.util.List;
 
 import it.espr.mvc.cache.CacheConfig;
 import it.espr.mvc.route.parameter.Parameter;
+import it.espr.mvc.route.parameter.RequestParameter;
 
 public class RouteConfig {
 
@@ -44,6 +45,17 @@ public class RouteConfig {
 		public <P extends Parameter> Controller params(P... parameters) {
 			if (parameters != null && parameters.length > 0) {
 				this.parameters = new ArrayList<>(Arrays.asList(parameters));
+			}
+			return this;
+		}
+
+		public <P extends Parameter> Controller params(String... parameters) {
+			if (parameters != null && parameters.length > 0) {
+				List<RequestParameter> requestParameters = new ArrayList<>(parameters.length);
+				for (String parameter : parameters) {
+					requestParameters.add(Parameter.param(parameter));
+				}
+				this.parameters = new ArrayList<>(requestParameters);
 			}
 			return this;
 		}
