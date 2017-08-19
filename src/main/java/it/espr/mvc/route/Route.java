@@ -5,7 +5,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.regex.Pattern;
 
-import it.espr.mvc.Pair;
+import it.espr.mvc.route.parameter.Parameter;
 
 public class Route {
 
@@ -13,16 +13,14 @@ public class Route {
 	public final String requestType;
 	public final Class<?> model;
 	public final Method method;
-	public final List<Pair<String, Class<?>>> pathVariables;
-	public final Map<String, Class<?>> parameters;
+	public final List<? extends Parameter> parameters;
 
-	public Route(Pattern path, String requestType, Class<?> model, Method method, List<Pair<String, Class<?>>> pathVariables, Map<String, Class<?>> parameters) {
+	public Route(Pattern path, String requestType, Class<?> model, Method method, List<? extends Parameter> parameters) {
 		super();
 		this.path = path;
 		this.requestType = requestType;
 		this.model = model;
 		this.method = method;
-		this.pathVariables = pathVariables;
 		this.parameters = parameters;
 	}
 

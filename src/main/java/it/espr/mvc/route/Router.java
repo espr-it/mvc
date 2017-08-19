@@ -1,7 +1,7 @@
 package it.espr.mvc.route;
 
+import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.regex.Matcher;
@@ -19,14 +19,14 @@ public class Router {
 
 	private List<Route> routes;
 
-	private Map<String, Pair<Route, Map<String, Object>>> cache;
+	private Map<String, Pair<Route, List<String>>> cache;
 
 	public Router(@Named("MvcRoutes") List<Route> routes) {
 		this.routes = routes;
 		this.cache = new HashMap<>();
 	}
 
-	public Pair<Route, Map<String, Object>> route(String uri, String requestType) {
+	public Pair<Route, List<String>> route(String uri, String requestType) {
 		String cacheKey = requestType + " " + uri;
 		log.debug("Looking up route for {}", cacheKey);
 
@@ -37,7 +37,7 @@ public class Router {
 
 		log.debug("Looping over {} available routes ", cacheKey);
 		Route route = null;
-		Map<String, Object> pathVariables = null;
+		List<String> pathVariables = new ArrayList<>();
 		for (Route candidate : routes) {
 			if (!candidate.requestType.equals(requestType)) {
 				continue;
@@ -46,18 +46,17 @@ public class Router {
 			if (m.matches()) {
 				route = candidate;
 				log.debug("Found route {} for {}", route, cacheKey);
-				pathVariables = new LinkedHashMap<>();
 				for (int i = 1; i <= m.groupCount(); i++) {
-					pathVariables.put(route.pathVariables.get(i - 1).p1, m.group(i));
+					pathVariables.add(m.group(i));
 				}
 				break;
 			}
 		}
 		log.debug("Caching route {} for {}", route, cacheKey);
 
-		Pair<Route, Map<String, Object>> pair = null;
+		Pair<Route, List<String>> pair = null;
 		if (route != null) {
-			pair = new Pair<Route, Map<String, Object>>(route, pathVariables);
+			pair = new Pair<Route, List<String>>(route, pathVariables);
 		}
 		this.cache.put(cacheKey, pair);
 

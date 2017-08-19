@@ -1,5 +1,6 @@
 package it.espr.mvc;
 
+import static it.espr.mvc.route.parameter.Parameter.param;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -50,7 +51,7 @@ public class ConfigurationTest {
 		MvcConfiguration configuration = new MvcConfiguration(configuratorFactory) {
 			@Override
 			protected void configureMvc() {
-				route().get("/parse/(.*:id)").to(SimpleModel.class, "parse").with("requestParameter");
+				route().get("/parse/(.*:id)").to(SimpleModel.class, "parse").params(param("requestParameter"));
 			}
 		};
 		configuration.configure();
@@ -58,7 +59,7 @@ public class ConfigurationTest {
 		verify(routeConfigurator, times(2)).route();
 		verify(routeConfigurator.route()).get("/parse/(.*:id)");
 		verify(routeConfigurator.route().get("/parse/(.*:id)")).to(SimpleModel.class, "parse");
-		verify(routeConfigurator.route().get("/parse/(.*:id)").to(SimpleModel.class, "parse")).with("requestParameter");
+		verify(routeConfigurator.route().get("/parse/(.*:id)").to(SimpleModel.class, "parse")).params(param("requestParameter"));
 		verify(routeConfigurator).configure();
 		verify(viewConfigurator).configure(false);
 		verify(stringToTypeConverterConfigurator).configure();
@@ -73,7 +74,7 @@ public class ConfigurationTest {
 				RouteConfig routeConfig1 = route().get("/parse/(.*:id)").to(SimpleModel.class, "parse").config();
 				cache(routeConfig1);
 
-				RouteConfig routeConfig2 = route().get("/parse/(.*:id)").to(SimpleModel.class, "parse").with("requestParameter").config();
+				RouteConfig routeConfig2 = route().get("/parse/(.*:id)").to(SimpleModel.class, "parse").params(param("requestParameter")).config();
 				cache(routeConfig2);
 			}
 		};

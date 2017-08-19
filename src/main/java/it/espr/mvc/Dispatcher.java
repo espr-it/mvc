@@ -5,10 +5,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.net.URLDecoder;
 import java.util.ArrayList;
-import java.util.Iterator;
 import java.util.List;
-import java.util.Map;
-import java.util.Map.Entry;
 
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServlet;
@@ -24,6 +21,7 @@ import it.espr.mvc.cache.CacheFactory;
 import it.espr.mvc.converter.StringToTypeConverterFactory;
 import it.espr.mvc.route.Route;
 import it.espr.mvc.route.Router;
+import it.espr.mvc.route.parameter.Parameter;
 
 @SuppressWarnings("serial")
 public class Dispatcher extends HttpServlet {
@@ -78,7 +76,7 @@ public class Dispatcher extends HttpServlet {
 		String url = uri + (Utils.isEmpty(request.getQueryString()) ? "" : "?" + request.getQueryString());
 
 		log.debug("Looking up a route for {} {}.", requestType, url);
-		Pair<Route, Map<String, Object>> pair = this.router.route(uri, requestType);
+		Pair<Route, List<String>> pair = this.router.route(uri, requestType);
 		log.debug("Found the route for {} {}.", requestType, url);
 
 		if (pair == null) {
@@ -87,7 +85,7 @@ public class Dispatcher extends HttpServlet {
 		}
 
 		Route route = pair.p1;
-		Map<String, Object> pathVariablesConfig = pair.p2;
+		List<String> pathVariablesConfig = pair.p2;
 
 		log.debug("Checking cache for {} {} ({})", requestType, url, route);
 		Object result = this.cacheFactory.get(requestType, url, route);
@@ -104,49 +102,57 @@ public class Dispatcher extends HttpServlet {
 		log.debug("View resolved for {} {}", requestType, url);
 	}
 
-	private Object route(HttpServletRequest request, HttpServletResponse response, Route route, Map<String, Object> pathVariablesConfig) {
-		String requestType = request.getMethod().toLowerCase();
+	private Object route(HttpServletRequest request, HttpServletResponse response, Route route, List<String> pathVariablesConfig) {
 		log.debug("Creating route instance");
 		Object model = injector.get(route.model);
 		log.debug("Created route instance");
 		List<Object> parameters = null;
-		if ((pathVariablesConfig != null && pathVariablesConfig.size() > 0) || (route.parameters != null && route.parameters.size() > 0)) {
-			log.debug("Collecting path variables");
-			parameters = new ArrayList<>();
-			List<String> pathVariables = new ArrayList<>();
-			if (pathVariablesConfig != null && pathVariablesConfig.size() > 0) {
-				for (Entry<String, Object> entry : pathVariablesConfig.entrySet()) {
-					pathVariables.add((String) entry.getValue());
-				}
-			}
-			log.debug("Collected path variables {}", pathVariables);
 
-			try {
-				Iterator<String> pathVariable = pathVariables.iterator();
-				for (Entry<String, Class<?>> parameter : route.parameters.entrySet()) {
-					if (pathVariable.hasNext()) {
-						parameters.add(this.stringToTypeConverterFactory.convert(parameter.getValue(), pathVariable.next()));
-					} else if (parameter.getKey().startsWith("header-")) {
-						parameters.add(this.stringToTypeConverterFactory.convert(parameter.getValue(), request.getHeader(parameter.getKey().substring("header-".length()))));
-					} else if (parameter.getValue().equals(HttpServletRequest.class)) {
-						parameters.add(request);
-					} else if (parameter.getValue().equals(HttpServletResponse.class)) {
-						parameters.add(response);
-					} else if ("post".equals(requestType)) {
-						if (parameter.getValue().equals(InputStream.class)) {
-							parameters.add(request.getInputStream());
-						} else if (parameter.getValue().equals(String.class)) {
+		try {
+			if (route.parameters.size() > 0) {
+				parameters = new ArrayList<>();
+				for (int i = 0; i < route.parameters.size(); i++) {
+					Parameter parameter = route.parameters.get(0);
+
+					switch (parameter.type) {
+
+					case PATH_VARIABLE:
+						parameters.add(this.stringToTypeConverterFactory.convert(parameter.cls, pathVariablesConfig.get(i)));
+						break;
+
+					case REQUEST_HEADER:
+						parameters.add(this.stringToTypeConverterFactory.convert(parameter.cls, request.getHeader(parameter.name)));
+						break;
+
+					case REQUEST_PARAMETER:
+						parameters.add(this.stringToTypeConverterFactory.convert(parameter.cls, request.getParameter(parameter.name)));
+						break;
+
+					case REQUEST_BODY:
+						if (String.class.equals(parameter.cls)) {
 							parameters.add(this.readBody(request));
+						} else if (InputStream.class.equals(parameter.cls)) {
+							parameters.add(request.getInputStream());
 						} else {
-							parameters.add(this.stringToTypeConverterFactory.convert(parameter.getValue(), this.readBody(request)));
+							parameters.add(this.stringToTypeConverterFactory.convert(parameter.cls, this.readBody(request)));
 						}
-					} else {
-						parameters.add(this.stringToTypeConverterFactory.convert(parameter.getValue(), request.getParameter(parameter.getKey())));
+						break;
+
+					case REQUEST:
+						parameters.add(request);
+						break;
+
+					case RESPONSE:
+						parameters.add(response);
+						break;
+
+					default:
+						break;
 					}
 				}
-			} catch (Exception e) {
-				log.error("Problem when converting/parsing parameters {} from request {}", route.parameters, request, e);
 			}
+		} catch (Exception e) {
+			log.error("Problem when converting/parsing parameters {} from request {}", route.parameters, request, e);
 		}
 
 		Object result = null;

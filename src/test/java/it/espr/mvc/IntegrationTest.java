@@ -1,5 +1,6 @@
 package it.espr.mvc;
 
+import static it.espr.mvc.route.parameter.Parameter.param;
 import static org.mockito.Mockito.when;
 
 import javax.servlet.http.HttpServletRequest;
@@ -31,7 +32,7 @@ public class IntegrationTest {
 		MvcConfiguration configuration = new MvcConfiguration() {
 			@Override
 			protected void configureMvc() {
-				RouteConfig route1 = route().get("/parse/(.*:id)").to(SimpleModel.class, "parse").with("requestParameter").config();
+				RouteConfig route1 = route().get("/parse/(.*:id)").to(SimpleModel.class, "parse").params(param("requestParameter")).config();
 
 				enableCache();
 				cache(route1);

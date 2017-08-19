@@ -12,7 +12,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import it.espr.injector.Utils;
-import it.espr.mvc.Pair;
+import it.espr.mvc.route.parameter.Parameter;
+import it.espr.mvc.route.parameter.PathVariable;
 
 public class RouteConfigurator {
 
@@ -46,11 +47,11 @@ public class RouteConfigurator {
 		return new ArrayList<>(routes.values());
 	}
 
-	private Route configureRoute(String path, String requestType, Class<?> model, String method, List<String> parameters) {
+	private Route configureRoute(String path, String requestType, Class<?> model, String method, List<? extends Parameter> parameters) {
 
 		Method m = null;
-		List<Pair<String, Class<?>>> pathVariables = new ArrayList<>();
-		Map<String, Class<?>> params = null;
+		List<String> pathVariables = new ArrayList<>();
+		List<Parameter> params = null;
 		try {
 			Method[] methods = model.getMethods();
 			for (Method candidate : methods) {
@@ -68,12 +69,14 @@ public class RouteConfigurator {
 
 			Class<?>[] methodParameters = m.getParameterTypes();
 			if (methodParameters != null && methodParameters.length > 0) {
-				params = new LinkedHashMap<>();
+				params = new ArrayList<>();
 				for (int i = 0; i < methodParameters.length; i++) {
 					if (pathVariablesSize > i) {
-						params.put(pathVariables.get(i).p1, methodParameters[i]);
+						params.add(new PathVariable(pathVariables.get(i), methodParameters[i]));
 					} else {
-						params.put(parameters.get(i - pathVariablesSize), methodParameters[i]);
+						Parameter parameter = parameters.get(i - pathVariablesSize);
+						parameter.cls = methodParameters[i];
+						params.add(parameter);
 					}
 				}
 			}
@@ -83,10 +86,10 @@ public class RouteConfigurator {
 		}
 
 		pathVariables = pathVariables.size() == 0 ? null : pathVariables;
-		return new Route(Pattern.compile(path + "(?:$|\\?.*)"), requestType, model, m, pathVariables, params);
+		return new Route(Pattern.compile(path + "(?:$|\\?.*)"), requestType, model, m, params);
 	}
 
-	private String parsePathVariables(List<Pair<String, Class<?>>> pathVariables, String path) {
+	private String parsePathVariables(List<String> pathVariables, String path) {
 		Matcher matcher = PATH_VARIABLE_PATTERN.matcher(path);
 		String newPath = new String(path);
 		while (matcher.find()) {
@@ -97,7 +100,7 @@ public class RouteConfigurator {
 			if (!Utils.isEmpty(items[0])) {
 				replacement = items[0];
 			}
-			pathVariables.add(new Pair<String, Class<?>>(variable, String.class));
+			pathVariables.add(variable);
 			newPath = newPath.replaceFirst(Pattern.quote(group), replacement);
 		}
 		return newPath;
