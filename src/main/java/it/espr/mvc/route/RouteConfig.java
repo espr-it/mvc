@@ -41,7 +41,7 @@ public class RouteConfig {
 		List<? extends Parameter> parameters;
 
 		@SuppressWarnings("unchecked")
-		public <P extends Parameter> Controller params(P ... parameters) {
+		public <P extends Parameter> Controller params(P... parameters) {
 			if (parameters != null && parameters.length > 0) {
 				this.parameters = new ArrayList<>(Arrays.asList(parameters));
 			}
@@ -69,8 +69,8 @@ public class RouteConfig {
 		return this.requestType(uri, "post");
 	}
 
-	public RequestType all(String uri) {
-		return this.requestType(uri, "get", "post");
+	public RequestType delete(String uri) {
+		return this.requestType(uri, "delete");
 	}
 
 	private RequestType requestType(String uri, String... types) {
