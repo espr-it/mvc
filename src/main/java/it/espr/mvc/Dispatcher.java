@@ -112,7 +112,7 @@ public class Dispatcher extends HttpServlet {
 			if (route.parameters.size() > 0) {
 				parameters = new ArrayList<>();
 				for (int i = 0; i < route.parameters.size(); i++) {
-					Parameter parameter = route.parameters.get(0);
+					Parameter parameter = route.parameters.get(i);
 
 					switch (parameter.type) {
 
