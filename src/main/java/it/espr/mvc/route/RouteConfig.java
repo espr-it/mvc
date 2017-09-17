@@ -41,6 +41,8 @@ public class RouteConfig {
 
 		List<? extends Parameter> parameters;
 
+		String view;
+
 		@SuppressWarnings("unchecked")
 		public <P extends Parameter> Controller params(P... parameters) {
 			if (parameters != null && parameters.length > 0) {
@@ -57,6 +59,11 @@ public class RouteConfig {
 				}
 				this.parameters = new ArrayList<>(requestParameters);
 			}
+			return this;
+		}
+
+		public Controller view(String view) {
+			this.view = view;
 			return this;
 		}
 
@@ -114,6 +121,10 @@ public class RouteConfig {
 
 	public Class<?> getClazz() {
 		return this.controller == null ? null : this.controller.clazz;
+	}
+
+	public String getView() {
+		return this.controller == null ? null : this.controller.view;
 	}
 
 	CacheConfig getCacheConfig() {

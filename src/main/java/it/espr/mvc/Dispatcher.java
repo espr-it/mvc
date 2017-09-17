@@ -109,7 +109,7 @@ public class Dispatcher extends HttpServlet {
 		List<Object> parameters = null;
 
 		try {
-			if (route.parameters.size() > 0) {
+			if (route.parameters != null && route.parameters.size() > 0) {
 				parameters = new ArrayList<>();
 				for (int i = 0; i < route.parameters.size(); i++) {
 					Parameter parameter = route.parameters.get(i);

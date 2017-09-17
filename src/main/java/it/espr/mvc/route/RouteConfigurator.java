@@ -40,14 +40,14 @@ public class RouteConfigurator {
 	public List<Route> configure() {
 		for (RouteConfig routeConfig : routesConfiguration) {
 			for (String requestType : routeConfig.getRequestTypes()) {
-				Route route = this.configureRoute(routeConfig.getUri(), requestType, routeConfig.getClazz(), routeConfig.getMethod(), routeConfig.getParameters());
+				Route route = this.configureRoute(routeConfig.getUri(), requestType, routeConfig.getClazz(), routeConfig.getMethod(), routeConfig.getParameters(), routeConfig.getView());
 				routes.put(routeConfig, route);
 			}
 		}
 		return new ArrayList<>(routes.values());
 	}
 
-	private Route configureRoute(String path, String requestType, Class<?> model, String method, List<? extends Parameter> parameters) {
+	private Route configureRoute(String path, String requestType, Class<?> model, String method, List<? extends Parameter> parameters, String view) {
 
 		Method m = null;
 		List<String> pathVariables = new ArrayList<>();
@@ -86,7 +86,7 @@ public class RouteConfigurator {
 		}
 
 		pathVariables = pathVariables.size() == 0 ? null : pathVariables;
-		return new Route(Pattern.compile(path + "(?:$|\\?.*)"), requestType, model, m, params);
+		return new Route(Pattern.compile(path + "(?:$|\\?.*)"), requestType, model, m, params, view);
 	}
 
 	private String parsePathVariables(List<String> pathVariables, String path) {

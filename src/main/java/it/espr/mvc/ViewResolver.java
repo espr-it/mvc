@@ -16,11 +16,14 @@ import it.espr.mvc.response.Forwarder;
 import it.espr.mvc.response.Redirect;
 import it.espr.mvc.response.Redirector;
 import it.espr.mvc.route.Route;
+import it.espr.mvc.view.JspView;
 import it.espr.mvc.view.View;
 
 public class ViewResolver {
 
 	private final Logger log = LoggerFactory.getLogger(ViewResolver.class);
+
+	private JspView jspView;
 
 	private Map<String, View> views;
 
@@ -28,8 +31,9 @@ public class ViewResolver {
 
 	private Forwarder forwarder;
 
-	public ViewResolver(@Named("MvcViews") Map<String, View> views, Redirector redirector, Forwarder forwarder) {
+	public ViewResolver(JspView jspView, @Named("MvcViews") Map<String, View> views, Redirector redirector, Forwarder forwarder) {
 		super();
+		this.jspView = jspView;
 		this.views = views;
 		this.redirector = redirector;
 		this.forwarder = forwarder;
@@ -43,6 +47,11 @@ public class ViewResolver {
 
 		if (data instanceof Forward) {
 			this.forwarder.forward(request, response, (Forward) data);
+			return;
+		}
+
+		if (route.view != null && route.view.endsWith(".jsp")) {
+			jspView.view(request, response, route, data);
 			return;
 		}
 
