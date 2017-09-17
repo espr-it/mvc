@@ -15,15 +15,11 @@ public abstract class JsonView implements View {
 
 	@Override
 	public void view(HttpServletRequest request, HttpServletResponse response, Route route, Object data) {
+		response.setCharacterEncoding("UTF-8");
+		response.setContentType("application/json");
+		response.addHeader("Content-type", "application/json; charset=utf-8");
 		if (data != null) {
 			try {
-				response.setCharacterEncoding("UTF-8");
-				response.setContentType("application/json");
-				response.addHeader("Access-Control-Allow-Origin", "*");
-				response.addHeader("Access-Control-Allow-Credentials", "true");
-				response.addHeader("Access-Control-Allow-Methods", "GET, POST, DELETE, PUT, OPTIONS, HEAD");
-				response.addHeader("Access-Control-Allow-Headers", "Content-Type, Accept, X-Requested-With");
-				response.addHeader("Content-type", "application/json; charset=utf-8");
 				response.getWriter().write(this.out(data));
 			} catch (Exception e) {
 				log.error("Problem when writing json output with", e);
