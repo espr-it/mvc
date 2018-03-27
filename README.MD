@@ -1,6 +1,6 @@
 # Simple MVC framework
 
-[![Build Status](https://travis-ci.org/espr-it/mvc.svg?branch=master)](https://travis-ci.org/espr-it/mvc) [![Maven Central](https://maven-badges.herokuapp.com/maven-central/it.espr/esprit-mvc/badge.svg)](https://maven-badges.herokuapp.com/maven-central/it.espr/esprit-mvc) [![codecov.io](http://codecov.io/github/espr-it/mvc/coverage.svg?branch=master)](http://codecov.io/github/espr-it/mvc?branch=master)
+[![Build Status](https://travis-ci.org/espr-it/mvc.svg?branch=master)](https://travis-ci.org/espr-it/mvc) [![Maven Central](https://img.shields.io/maven-central/v/it.espr/esprit-mvc.svg)](https://mvnrepository.com/artifact/it.espr/esprit-mvc) [![codecov.io](http://codecov.io/github/espr-it/mvc/coverage.svg?branch=master)](http://codecov.io/github/espr-it/mvc?branch=master)
 
 The goal of the project is to offer simple, fast, small and testable MVC framework for java applications. IT was designed together with [esprit-injector](https://github.com/espr-it/injector) for running on Google App Engine standard environment - but it's not limited to it. You can run it in any servlet container.
 
