@@ -3,7 +3,7 @@
 
 	<groupId>it.espr</groupId>
 	<artifactId>esprit-mvc</artifactId>
-	<version>0.3.3-SNAPSHOT</version>
+	<version>0.3.3</version>
 	<packaging>jar</packaging>
 
 	<name>esprit-mvc</name>
@@ -30,7 +30,7 @@
 		<connection>scm:git:git@github.com/espr-it/mvc.git</connection>
 		<developerConnection>scm:git:git@github.com:espr-it/mvc.git</developerConnection>
 		<url>http://github.com/espr-it/mvc/tree/master</url>
-		<tag>HEAD</tag>
+		<tag>esprit-mvc-0.3.3</tag>
 	</scm>
 
 	<distributionManagement>
