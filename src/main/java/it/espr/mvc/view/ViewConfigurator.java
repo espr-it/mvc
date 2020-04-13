@@ -9,8 +9,7 @@ import java.util.Map;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import it.espr.mvc.view.json.JsonView;
-import it.espr.mvc.view.json.JsonViewFinder;
+import it.espr.mvc.json.Json;
 
 public class ViewConfigurator {
 
@@ -33,7 +32,7 @@ public class ViewConfigurator {
 		return this.viewConfigurationMap.get(accept);
 	}
 
-	public Map<String, Class<? extends View>> configure(boolean isJsonBound) {
+	public Map<String, Class<? extends View>> configure(Class<? extends Json> json) {
 		Map<String, Class<? extends View>> views = new LinkedHashMap<>();
 
 		for (ViewConfig viewConfig : viewConfiguration) {
@@ -42,12 +41,12 @@ public class ViewConfigurator {
 			}
 		}
 
-		this.addDefaultViews(views, isJsonBound);
+		this.addDefaultViews(views, json);
 
 		return views;
 	}
 
-	private final void addDefaultViews(Map<String, Class<? extends View>> views, boolean isJsonBound) {
+	private final void addDefaultViews(Map<String, Class<? extends View>> views, Class<? extends Json> json) {
 		log.debug("Adding default views...");
 
 		// add simple view as a default and text/html option if user didn't
@@ -61,14 +60,8 @@ public class ViewConfigurator {
 			views.put("text/html", SimpleView.class);
 		}
 
-		// add json view in case user didn't declare any but put a json lib on
-		// classpath
-		if (!views.containsKey("application/json") && !isJsonBound) {
-			Class<? extends JsonView> jsonView = new JsonViewFinder().find();
-			if (jsonView != null) {
-				log.debug("Adding {} as an auto configured json view for {}.", jsonView, "application/json");
-				views.put("application/json", jsonView);
-			}
+		if (!views.containsKey("application/json") && json != null) {
+			views.put("application/json", JsonView.class);
 		}
 	}
 

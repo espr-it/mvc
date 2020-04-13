@@ -15,6 +15,7 @@ import org.mockito.runners.MockitoJUnitRunner;
 
 import it.espr.mvc.cache.CacheConfigurator;
 import it.espr.mvc.converter.StringToTypeConverterConfigurator;
+import it.espr.mvc.json.BoonImpl;
 import it.espr.mvc.model.SimpleModel;
 import it.espr.mvc.route.RouteConfig;
 import it.espr.mvc.route.RouteConfigurator;
@@ -61,7 +62,7 @@ public class ConfigurationTest {
 		verify(routeConfigurator.route().get("/parse/(.*:id)")).to(SimpleModel.class, "parse");
 		verify(routeConfigurator.route().get("/parse/(.*:id)").to(SimpleModel.class, "parse")).params(param("requestParameter"));
 		verify(routeConfigurator).configure();
-		verify(viewConfigurator).configure(false);
+		verify(viewConfigurator).configure(BoonImpl.class);
 		verify(stringToTypeConverterConfigurator).configure();
 		verify(cacheConfigurator).configure();
 	}

@@ -40,7 +40,8 @@ public class Dispatcher extends HttpServlet {
 
 	public void init() throws ServletException {
 		try {
-			MvcConfiguration configuration = (MvcConfiguration) Class.forName(this.getInitParameter("configuration")).newInstance();
+			MvcConfiguration configuration = (MvcConfiguration) Class.forName(this.getInitParameter("configuration"))
+					.newInstance();
 			this.init(configuration);
 		} catch (Exception e) {
 			log.error("Problem when loading configuration for mvc dispatcher", e);
@@ -58,14 +59,23 @@ public class Dispatcher extends HttpServlet {
 	}
 
 	@Override
-	protected void doGet(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
+	protected void doGet(HttpServletRequest request, HttpServletResponse response)
+			throws ServletException, IOException {
 		log.debug("Received GET request.");
 		this.dispatch(request, response);
 	}
 
 	@Override
-	protected void doPost(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
+	protected void doPost(HttpServletRequest request, HttpServletResponse response)
+			throws ServletException, IOException {
 		log.debug("Received POST request.");
+		this.dispatch(request, response);
+	}
+
+	@Override
+	protected void doDelete(HttpServletRequest request, HttpServletResponse response)
+			throws ServletException, IOException {
+		log.debug("Received DELETE request.");
 		this.dispatch(request, response);
 	}
 
@@ -102,7 +112,8 @@ public class Dispatcher extends HttpServlet {
 		log.debug("View resolved for {} {}", requestType, url);
 	}
 
-	private Object route(HttpServletRequest request, HttpServletResponse response, Route route, List<String> pathVariablesConfig) {
+	private Object route(HttpServletRequest request, HttpServletResponse response, Route route,
+			List<String> pathVariablesConfig) {
 		log.debug("Creating route instance");
 		Object model = injector.get(route.model);
 		log.debug("Created route instance");
@@ -117,15 +128,18 @@ public class Dispatcher extends HttpServlet {
 					switch (parameter.type) {
 
 					case PATH_VARIABLE:
-						parameters.add(this.stringToTypeConverterFactory.convert(parameter.cls, pathVariablesConfig.get(i)));
+						parameters.add(
+								this.stringToTypeConverterFactory.convert(parameter.cls, pathVariablesConfig.get(i)));
 						break;
 
 					case REQUEST_HEADER:
-						parameters.add(this.stringToTypeConverterFactory.convert(parameter.cls, request.getHeader(parameter.name)));
+						parameters.add(this.stringToTypeConverterFactory.convert(parameter.cls,
+								request.getHeader(parameter.name)));
 						break;
 
 					case REQUEST_PARAMETER:
-						parameters.add(this.stringToTypeConverterFactory.convert(parameter.cls, request.getParameter(parameter.name)));
+						parameters.add(this.stringToTypeConverterFactory.convert(parameter.cls,
+								request.getParameter(parameter.name)));
 						break;
 
 					case REQUEST_BODY:
@@ -134,7 +148,8 @@ public class Dispatcher extends HttpServlet {
 						} else if (InputStream.class.equals(parameter.cls)) {
 							parameters.add(request.getInputStream());
 						} else {
-							parameters.add(this.stringToTypeConverterFactory.convert(parameter.cls, this.readBody(request)));
+							parameters.add(
+									this.stringToTypeConverterFactory.convert(parameter.cls, this.readBody(request)));
 						}
 						break;
 
@@ -164,6 +179,7 @@ public class Dispatcher extends HttpServlet {
 			}
 		} catch (Exception e) {
 			log.error("Problem when calling model {}", model, e);
+			result = e.getCause();
 		}
 		return result;
 	}

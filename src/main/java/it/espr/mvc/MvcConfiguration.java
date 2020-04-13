@@ -6,8 +6,6 @@ import java.util.Map;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.google.gson.GsonBuilder;
-
 import it.espr.mvc.cache.Cache;
 import it.espr.mvc.cache.CacheConfig;
 import it.espr.mvc.cache.CacheConfigurator;
@@ -17,12 +15,8 @@ import it.espr.mvc.json.JsonFinder;
 import it.espr.mvc.route.Route;
 import it.espr.mvc.route.RouteConfig;
 import it.espr.mvc.route.StaticResourcesRoute;
-import it.espr.mvc.route.parameter.Request;
-import it.espr.mvc.route.parameter.Response;
 import it.espr.mvc.view.View;
 import it.espr.mvc.view.ViewConfig;
-import it.espr.mvc.view.json.GsonView;
-import it.espr.mvc.view.json.JsonView;
 
 public abstract class MvcConfiguration extends it.espr.injector.Configuration {
 
@@ -71,7 +65,8 @@ public abstract class MvcConfiguration extends it.espr.injector.Configuration {
 
 		// configure converters
 		log.debug("Configuring String to Type converters...");
-		List<Class<? extends StringToTypeConverter<?>>> converters = configuratorFactory.stringToTypeConverterConfigurator().configure();
+		List<Class<? extends StringToTypeConverter<?>>> converters = configuratorFactory
+				.stringToTypeConverterConfigurator().configure();
 		this.bind(converters).named("StringToTypeConverters");
 		log.debug("Configured String to Type converters: {} converters ({})", converters.size(), converters);
 
@@ -84,16 +79,7 @@ public abstract class MvcConfiguration extends it.espr.injector.Configuration {
 
 		// configure views
 		log.debug("Configuring views...");
-		Map<String, Class<? extends View>> views = configuratorFactory.viewConfigurator().configure(this.isBound(JsonView.class));
-
-		// TODO has to be fixed somehow
-		Class<? extends View> jsonView = views.get("application/json");
-		if (jsonView != null) {
-			if (jsonView.equals(GsonView.class)) {
-				this.bind(new GsonBuilder().disableHtmlEscaping().setDateFormat("EEE, dd MMM yyyy HH:mm:ss zzz").create());
-			}
-			this.bind(JsonView.class).to(jsonView);
-		}
+		Map<String, Class<? extends View>> views = configuratorFactory.viewConfigurator().configure(json);
 
 		this.bind(views).named("MvcViews");
 		log.debug("Configured views: {} ({})", views.size(), views);

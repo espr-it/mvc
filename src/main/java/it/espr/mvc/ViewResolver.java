@@ -16,6 +16,7 @@ import it.espr.mvc.response.Forwarder;
 import it.espr.mvc.response.Redirect;
 import it.espr.mvc.response.Redirector;
 import it.espr.mvc.route.Route;
+import it.espr.mvc.view.Error;
 import it.espr.mvc.view.JspView;
 import it.espr.mvc.view.View;
 
@@ -31,7 +32,8 @@ public class ViewResolver {
 
 	private Forwarder forwarder;
 
-	public ViewResolver(JspView jspView, @Named("MvcViews") Map<String, View> views, Redirector redirector, Forwarder forwarder) {
+	public ViewResolver(JspView jspView, @Named("MvcViews") Map<String, View> views, Redirector redirector,
+			Forwarder forwarder) {
 		super();
 		this.jspView = jspView;
 		this.views = views;
@@ -40,6 +42,11 @@ public class ViewResolver {
 	}
 
 	public void resolve(HttpServletRequest request, HttpServletResponse response, Route route, Object data) {
+		if (data instanceof Exception) {
+			response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
+			data = new Error(((Exception) data).getMessage());
+		}
+
 		if (data instanceof Redirect) {
 			this.redirector.redirect(response, (Redirect) data);
 			return;
@@ -60,7 +67,8 @@ public class ViewResolver {
 		for (String accept : accepts) {
 			if (views.containsKey(accept)) {
 				view = this.views.get(accept);
-				log.debug("Using '{}' view implementation for '{}' (supplied accept parameters: {})", view, accept, accepts);
+				log.debug("Using '{}' view implementation for '{}' (supplied accept parameters: {})", view, accept,
+						accepts);
 				break;
 			}
 		}

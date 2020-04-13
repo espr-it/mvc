@@ -40,53 +40,65 @@ public class RouteConfigurator {
 	public List<Route> configure() {
 		for (RouteConfig routeConfig : routesConfiguration) {
 			for (String requestType : routeConfig.getRequestTypes()) {
-				Route route = this.configureRoute(routeConfig.getUri(), requestType, routeConfig.getClazz(), routeConfig.getMethod(), routeConfig.getParameters(), routeConfig.getView());
+				Route route = this.configureRoute(routeConfig.getUri(), requestType, routeConfig.getClazz(),
+						routeConfig.getMethod(), routeConfig.getParameters(), routeConfig.getView());
 				routes.put(routeConfig, route);
 			}
 		}
 		return new ArrayList<>(routes.values());
 	}
 
-	private Route configureRoute(String path, String requestType, Class<?> model, String method, List<? extends Parameter> parameters, String view) {
+	private Route configureRoute(String path, String requestType, Class<?> model, String method,
+			List<? extends Parameter> parameters, String view) {
 
-		Method m = null;
+		List<Method> candidates = new ArrayList<>();
 		List<String> pathVariables = new ArrayList<>();
 		List<Parameter> params = null;
 		try {
 			Method[] methods = model.getMethods();
 			for (Method candidate : methods) {
-				if (Utils.isPublic(candidate) && candidate.getName().equals(method) && candidate.getParameterTypes().length >= (parameters == null ? 0 : parameters.size())) {
-					m = candidate;
-					break;
-				}
-			}
-			if (m == null) {
-				throw new Exception("Couldn't find a route");
-			}
+				if (Utils.isPublic(candidate) && candidate.getName().equals(method)
+						&& candidate.getParameterTypes().length >= (parameters == null ? 0 : parameters.size())) {
 
-			path = this.parsePathVariables(pathVariables, path);
-			int pathVariablesSize = pathVariables.size();
+					try {
+						path = this.parsePathVariables(pathVariables, path);
+						int pathVariablesSize = pathVariables.size();
 
-			Class<?>[] methodParameters = m.getParameterTypes();
-			if (methodParameters != null && methodParameters.length > 0) {
-				params = new ArrayList<>();
-				for (int i = 0; i < methodParameters.length; i++) {
-					if (pathVariablesSize > i) {
-						params.add(new PathVariable(pathVariables.get(i), methodParameters[i]));
-					} else {
-						Parameter parameter = parameters.get(i - pathVariablesSize);
-						parameter.cls = methodParameters[i];
-						params.add(parameter);
+						Class<?>[] methodParameters = candidate.getParameterTypes();
+						if (methodParameters != null && methodParameters.length > 0) {
+							params = new ArrayList<>();
+							for (int i = 0; i < methodParameters.length; i++) {
+								if (pathVariablesSize > i) {
+									params.add(new PathVariable(pathVariables.get(i), methodParameters[i]));
+								} else {
+									Parameter parameter = parameters.get(i - pathVariablesSize);
+									parameter.cls = methodParameters[i];
+									params.add(parameter);
+								}
+							}
+						}
+
+						candidates.add(candidate);
+					} catch (Exception e) {
+						log.debug(
+								"Found a candidate route method {} with non-matching number/typo of parameters: {}, skipping",
+								method, candidate.getParameterTypes().length);
 					}
 				}
 			}
+
+			if (candidates.size() != 1) {
+				throw new Exception("Couldn't find a route - found " + candidates.size() + " candidates!");
+			}
+
 		} catch (Exception e) {
-			log.error("Problem when configuring route: {} {} {} {} {}", path, requestType, model, method, parameters, e);
-			throw new RuntimeException("Problem when configuring route '" + requestType + " " + path + " " + model + " " + method + " " + parameters, e);
+			log.error("Problem when configuring route: {} {} {} {} {}", path, requestType, model, method, parameters,
+					e);
+			throw new RuntimeException("Problem when configuring route '" + requestType + " " + path + " " + model + " "
+					+ method + " " + parameters, e);
 		}
 
-		pathVariables = pathVariables.size() == 0 ? null : pathVariables;
-		return new Route(Pattern.compile(path + "(?:$|\\?.*)"), requestType, model, m, params, view);
+		return new Route(Pattern.compile(path + "(?:$|\\?.*)"), requestType, model, candidates.get(0), params, view);
 	}
 
 	private String parsePathVariables(List<String> pathVariables, String path) {
