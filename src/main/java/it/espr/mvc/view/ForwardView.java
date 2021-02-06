@@ -1,4 +1,4 @@
-package it.espr.mvc.response;
+package it.espr.mvc.view;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
@@ -6,9 +6,16 @@ import javax.servlet.http.HttpServletResponse;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-public class Forwarder {
+import it.espr.mvc.route.Route;
 
-	private static Logger log = LoggerFactory.getLogger(Forwarder.class);
+public class ForwardView implements View {
+
+	private static Logger log = LoggerFactory.getLogger(ForwardView.class);
+
+	public static class Forward {
+
+		public String path;
+	}
 
 	public void forward(HttpServletRequest request, HttpServletResponse response, Forward forward) {
 		String path = forward.path;
@@ -19,9 +26,13 @@ public class Forwarder {
 		log.debug("Forwarding to {}", path);
 		try {
 			request.getRequestDispatcher(path).forward(request, response);
-			;
 		} catch (Exception exception) {
 			log.error("Problem when forwarding to {}", forward.path, exception);
 		}
+	}
+
+	@Override
+	public void view(HttpServletRequest request, HttpServletResponse response, Route route, Object data) {
+		this.forward(request, response, (Forward) data);
 	}
 }

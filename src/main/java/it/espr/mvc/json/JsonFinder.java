@@ -14,9 +14,8 @@ public class JsonFinder {
 	private static final Map<String, Class<? extends Json>> jsonImpls = new LinkedHashMap<>();
 
 	{
-		jsonImpls.put("org.boon.json.ObjectMapper", BoonImpl.class);
-		jsonImpls.put("com.google.gson.Gson", GsonImpl.class);
 		jsonImpls.put("com.fasterxml.jackson.databind.ObjectMapper", JacksonImpl.class);
+		jsonImpls.put("com.google.gson.Gson", GsonImpl.class);
 	}
 
 	public Class<? extends Json> find() {

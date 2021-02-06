@@ -15,10 +15,11 @@ public class JspView implements View {
 	@Override
 	public void view(HttpServletRequest request, HttpServletResponse response, Route route, Object data) {
 		try {
+			String path = "jsp/" + request.getRequestURI() + ".jsp";
 			request.setAttribute("model", data);
-			request.getRequestDispatcher(route.view).forward(request, response);
+			request.getRequestDispatcher(path).forward(request, response);
 		} catch (Exception e) {
-			log.error("Problem when forwarding request to static html {}", route.view, e);
+			log.error("Problem when forwarding request jsp {}", route.view, e);
 		}
 	}
 }

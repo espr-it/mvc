@@ -7,6 +7,7 @@ import java.util.List;
 import it.espr.mvc.cache.CacheConfig;
 import it.espr.mvc.route.parameter.Parameter;
 import it.espr.mvc.route.parameter.RequestParameter;
+import it.espr.mvc.view.View;
 
 public class RouteConfig {
 
@@ -41,7 +42,7 @@ public class RouteConfig {
 
 		List<? extends Parameter> parameters;
 
-		String view;
+		Class<? extends View> view;
 
 		@SuppressWarnings("unchecked")
 		public <P extends Parameter> Controller params(P... parameters) {
@@ -62,7 +63,7 @@ public class RouteConfig {
 			return this;
 		}
 
-		public Controller view(String view) {
+		public Controller view(Class<? extends View> view) {
 			this.view = view;
 			return this;
 		}
@@ -123,7 +124,7 @@ public class RouteConfig {
 		return this.controller == null ? null : this.controller.clazz;
 	}
 
-	public String getView() {
+	public Class<? extends View> getView() {
 		return this.controller == null ? null : this.controller.view;
 	}
 

@@ -1,6 +1,5 @@
 package it.espr.mvc.view;
 
-import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -10,59 +9,52 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import it.espr.mvc.json.Json;
+import it.espr.mvc.route.Route;
 
 public class ViewConfigurator {
 
 	private static final Logger log = LoggerFactory.getLogger(ViewConfigurator.class);
 
-	private List<ViewConfig> viewConfiguration = new ArrayList<>();
+	private Map<Object, ViewConfig> viewConfigs = new HashMap<>();
 
-	private Map<String, ViewConfig> viewConfigurationMap = new HashMap<>();
+	// this is used for chaining/config from the mvc configuration
+	public ViewConfig view(Object type) {
+		ViewConfig config = new ViewConfig(type);
 
-	public ViewConfig view(String... accept) {
-		ViewConfig viewConfig = new ViewConfig(accept);
-		viewConfiguration.add(viewConfig);
-		for (String a : viewConfig.accept) {
-			this.viewConfigurationMap.put(a, viewConfig);
+		// keep the original handler just in case user doesn't finish overriding
+		if (this.hasConfigurationFor(type)) {
+			config.clazz = this.viewConfigs.get(type).clazz;
 		}
-		return viewConfig;
+
+		this.viewConfigs.put(type, config);
+		return config;
 	}
 
-	public ViewConfig get(String accept) {
-		return this.viewConfigurationMap.get(accept);
+	public boolean hasConfigurationFor(Object type) {
+		return viewConfigs.containsKey(type);
 	}
 
-	public Map<String, Class<? extends View>> configure(Class<? extends Json> json) {
-		Map<String, Class<? extends View>> views = new LinkedHashMap<>();
+	public Map<Object, Class<? extends View>> configure(Class<? extends Json> json, List<Route> routes) {
+		Map<Object, Class<? extends View>> views = new LinkedHashMap<>();
 
-		for (ViewConfig viewConfig : viewConfiguration) {
-			for (String accept : viewConfig.accept) {
-				views.put(accept, viewConfig.clazz);
+		for (ViewConfig config : viewConfigs.values()) {
+			views.put(config.type, config.clazz);
+		}
+
+		// add all views configured via routes
+		for (Route route : routes) {
+			Class<? extends View> view = route.view;
+			if (!views.containsKey(view)) {
+				views.put(view, view);
 			}
 		}
-
-		this.addDefaultViews(views, json);
-
+		
+		if (views.containsKey(null)) {
+			Class<? extends View> defaultView = views.get(null);
+			views.remove(null);
+			views.put(null, defaultView);
+		}
+		
 		return views;
 	}
-
-	private final void addDefaultViews(Map<String, Class<? extends View>> views, Class<? extends Json> json) {
-		log.debug("Adding default views...");
-
-		// add simple view as a default and text/html option if user didn't
-		// declared them
-		if (!views.containsKey(null)) {
-			log.debug("Adding SimpleView as a default view.");
-			views.put(null, SimpleView.class);
-		}
-		if (!views.containsKey("text/html")) {
-			log.debug("Adding SimpleView for {}.", "text/html");
-			views.put("text/html", SimpleView.class);
-		}
-
-		if (!views.containsKey("application/json") && json != null) {
-			views.put("application/json", JsonView.class);
-		}
-	}
-
 }

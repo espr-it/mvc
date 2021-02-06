@@ -5,9 +5,13 @@ import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
+import java.util.ArrayList;
+import java.util.List;
+
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
+import org.mockito.AdditionalAnswers;
 import org.mockito.Answers;
 import org.mockito.Mock;
 import org.mockito.Mockito;
@@ -15,10 +19,12 @@ import org.mockito.runners.MockitoJUnitRunner;
 
 import it.espr.mvc.cache.CacheConfigurator;
 import it.espr.mvc.converter.StringToTypeConverterConfigurator;
-import it.espr.mvc.json.BoonImpl;
+import it.espr.mvc.json.JacksonImpl;
 import it.espr.mvc.model.SimpleModel;
+import it.espr.mvc.route.Route;
 import it.espr.mvc.route.RouteConfig;
 import it.espr.mvc.route.RouteConfigurator;
+import it.espr.mvc.view.ViewConfig;
 import it.espr.mvc.view.ViewConfigurator;
 
 @RunWith(MockitoJUnitRunner.class)
@@ -45,6 +51,8 @@ public class ConfigurationTest {
 		when(configuratorFactory.viewConfigurator()).thenReturn(viewConfigurator);
 		when(configuratorFactory.stringToTypeConverterConfigurator()).thenReturn(stringToTypeConverterConfigurator);
 		when(configuratorFactory.cacheConfigurator()).thenReturn(cacheConfigurator);
+
+		when(viewConfigurator.view(Mockito.any())).thenReturn(new ViewConfig(AdditionalAnswers.returnsFirstArg()));
 	}
 
 	@Test
@@ -57,12 +65,17 @@ public class ConfigurationTest {
 		};
 		configuration.configure();
 
+		
+		List<Route> routes = new ArrayList<>();
+		when(routeConfigurator.configure()).thenReturn(routes);
+		
 		verify(routeConfigurator, times(2)).route();
 		verify(routeConfigurator.route()).get("/parse/(.*:id)");
 		verify(routeConfigurator.route().get("/parse/(.*:id)")).to(SimpleModel.class, "parse");
-		verify(routeConfigurator.route().get("/parse/(.*:id)").to(SimpleModel.class, "parse")).params(param("requestParameter"));
+		verify(routeConfigurator.route().get("/parse/(.*:id)").to(SimpleModel.class, "parse"))
+				.params(param("requestParameter"));
 		verify(routeConfigurator).configure();
-		verify(viewConfigurator).configure(BoonImpl.class);
+		verify(viewConfigurator).configure(JacksonImpl.class, routes);
 		verify(stringToTypeConverterConfigurator).configure();
 		verify(cacheConfigurator).configure();
 	}
@@ -75,7 +88,8 @@ public class ConfigurationTest {
 				RouteConfig routeConfig1 = route().get("/parse/(.*:id)").to(SimpleModel.class, "parse").config();
 				cache(routeConfig1);
 
-				RouteConfig routeConfig2 = route().get("/parse/(.*:id)").to(SimpleModel.class, "parse").params(param("requestParameter")).config();
+				RouteConfig routeConfig2 = route().get("/parse/(.*:id)").to(SimpleModel.class, "parse")
+						.params(param("requestParameter")).config();
 				cache(routeConfig2);
 			}
 		};

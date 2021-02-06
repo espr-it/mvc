@@ -7,13 +7,13 @@ import it.espr.mvc.view.ViewConfigurator;
 
 public class ConfiguratorFactory {
 
-	private static ViewConfigurator viewConfigurator;
+	private ViewConfigurator viewConfigurator;
 
-	private static RouteConfigurator routeConfigurator;
+	private RouteConfigurator routeConfigurator;
 
-	private static CacheConfigurator cacheConfigurator;
+	private CacheConfigurator cacheConfigurator;
 
-	private static StringToTypeConverterConfigurator stringToTypeConverterConfigurator;
+	private StringToTypeConverterConfigurator stringToTypeConverterConfigurator;
 
 	public ViewConfigurator viewConfigurator() {
 		if (viewConfigurator == null) {

@@ -1,13 +1,36 @@
-package it.espr.mvc.response;
+package it.espr.mvc.view;
 
+import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-public class Redirector {
+import it.espr.mvc.route.Route;
 
-	private static Logger log = LoggerFactory.getLogger(Redirector.class);
+public class RedirectView implements View {
+
+	public static class Redirect {
+
+		public int code;
+
+		public String url;
+
+		public int cache;
+
+		public Redirect(int code, String url) {
+			this.code = code;
+			this.url = url;
+		}
+
+		public Redirect(int code, String url, int cache) {
+			this.code = code;
+			this.url = url;
+			this.cache = cache;
+		}
+	}
+
+	private static Logger log = LoggerFactory.getLogger(RedirectView.class);
 
 	private static final int CACHE_DURATION_IN_SECOND = 60 * 60 * 24 * 1;
 
@@ -33,5 +56,10 @@ public class Redirector {
 		} catch (Exception exception) {
 			log.error("Problem when redirecting to {}", redirect.url, exception);
 		}
+	}
+
+	@Override
+	public void view(HttpServletRequest request, HttpServletResponse response, Route route, Object data) {
+		this.redirect(response, (Redirect) data);
 	}
 }

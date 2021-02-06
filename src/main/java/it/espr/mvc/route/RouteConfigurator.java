@@ -1,6 +1,7 @@
 package it.espr.mvc.route;
 
 import java.lang.reflect.Method;
+import java.lang.reflect.Modifier;
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -12,8 +13,10 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import it.espr.injector.Utils;
+import it.espr.mvc.controller.DefaultController;
 import it.espr.mvc.route.parameter.Parameter;
 import it.espr.mvc.route.parameter.PathVariable;
+import it.espr.mvc.view.View;
 
 public class RouteConfigurator {
 
@@ -45,21 +48,33 @@ public class RouteConfigurator {
 				routes.put(routeConfig, route);
 			}
 		}
-		return new ArrayList<>(routes.values());
+
+		List<Route> list = new ArrayList<>();
+		Route defaultRoute = null;
+		for (Route route : routes.values()) {
+			if (route.model.isAssignableFrom(DefaultController.class)) {
+				defaultRoute = route;
+				continue;
+			}
+			list.add(route);
+		}
+
+		if (defaultRoute != null)
+			list.add(defaultRoute);
+		return list;
 	}
 
-	private Route configureRoute(String path, String requestType, Class<?> model, String method,
-			List<? extends Parameter> parameters, String view) {
+	private Route configureRoute(String path, String requestType, Class<?> controller, String method,
+			List<? extends Parameter> parameters, Class<? extends View> view) {
 
 		List<Method> candidates = new ArrayList<>();
 		List<String> pathVariables = new ArrayList<>();
 		List<Parameter> params = null;
 		try {
-			Method[] methods = model.getMethods();
-			for (Method candidate : methods) {
-				if (Utils.isPublic(candidate) && candidate.getName().equals(method)
-						&& candidate.getParameterTypes().length >= (parameters == null ? 0 : parameters.size())) {
+			List<Method> methods = this.getSuitableMethods(controller.getMethods());
 
+			for (Method candidate : methods) {
+				if (candidate.getName().equals(method) && areParametersMatching(candidate, parameters)) {
 					try {
 						path = this.parsePathVariables(pathVariables, path);
 						int pathVariablesSize = pathVariables.size();
@@ -87,18 +102,48 @@ public class RouteConfigurator {
 				}
 			}
 
+			// if could find candidate method, check if model has one method only which
+			// matches parameters and use it
+			if (candidates.size() == 0) {
+				methods = this.getSuitableMethods(controller.getDeclaredMethods());
+				if (methods.size() == 1) {
+					Method singleDeclaredMethod = methods.get(0);
+					if (Utils.isPublic(singleDeclaredMethod)
+							&& areParametersMatching(singleDeclaredMethod, parameters)) {
+						candidates.add(singleDeclaredMethod);
+					}
+				}
+			}
+
 			if (candidates.size() != 1) {
 				throw new Exception("Couldn't find a route - found " + candidates.size() + " candidates!");
 			}
 
 		} catch (Exception e) {
-			log.error("Problem when configuring route: {} {} {} {} {}", path, requestType, model, method, parameters,
-					e);
-			throw new RuntimeException("Problem when configuring route '" + requestType + " " + path + " " + model + " "
-					+ method + " " + parameters, e);
+			log.error("Problem when configuring route: {} {} {} {} {}", path, requestType, controller, method,
+					parameters, e);
+			throw new RuntimeException("Problem when configuring route '" + requestType + " " + path + " " + controller
+					+ " " + method + " " + parameters, e);
 		}
 
-		return new Route(Pattern.compile(path + "(?:$|\\?.*)"), requestType, model, candidates.get(0), params, view);
+		return new Route(Pattern.compile(path + "(?:$|\\?.*)"), requestType, controller, candidates.get(0), params,
+				view);
+	}
+
+	private List<Method> getSuitableMethods(Method[] methods) {
+		List<Method> filtered = new ArrayList<>();
+
+		for (Method m : methods) {
+			if (Utils.isPublic(m) && !Modifier.isStatic(m.getModifiers()) && !m.isSynthetic()) {
+				filtered.add(m);
+			}
+		}
+
+		return filtered;
+	}
+
+	private boolean areParametersMatching(Method method, List<? extends Parameter> parameters) {
+		return method.getParameterTypes().length >= (parameters == null ? 0 : parameters.size());
 	}
 
 	private String parsePathVariables(List<String> pathVariables, String path) {

@@ -120,7 +120,7 @@
 			<plugin>
 				<groupId>org.jacoco</groupId>
 				<artifactId>jacoco-maven-plugin</artifactId>
-				<version>0.7.7.201606060606</version>
+				<version>0.8.6</version>
 				<executions>
 					<execution>
 						<goals>
@@ -148,7 +148,7 @@
 		<dependency>
 			<groupId>org.slf4j</groupId>
 			<artifactId>slf4j-api</artifactId>
-			<version>1.7.5</version>
+			<version>1.7.30</version>
 		</dependency>
 		<dependency>
 			<groupId>javax.servlet</groupId>
